@@ -9,7 +9,8 @@ const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    alert(`Log in with `);
+    // TODO: Navigate to the pets view on successful login
+    router.push('/pets-view');
   };
 
   return (
