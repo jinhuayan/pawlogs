@@ -1,50 +1,33 @@
-# Welcome to your Expo app 👋
+# 🐾 PawLog – Daily Animal Health & Behavior Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**PawLog** is a cross-platform mobile app built for animal rescue groups like Save Fur Pets to track the daily care, health, and behavior of foster pets. It replaces messy paper logs and scattered chats with one centralized, easy-to-use system.
 
-## Get started
+---
 
-1. Install dependencies
+## 🌟 Features
 
-   ```bash
-   npm install
-   ```
+### Foster View
+- Secure login with Gmail or email/password
+- View and manage assigned pets
+- Log daily care activities: food, water, litter, medication, behavior
+- Upload photos to logs
+- Get reminders when logs are missing
+- Flag unusual symptoms (e.g., vomiting, not eating)
 
-2. Start the app
+### Admin/Coordinator View
+- View all pet logs by foster, pet, or date
+- Filter logs by keyword or symptom
+- Assign pets to fosters and manage user roles
+- Export logs to Google Sheets for vet visits
+- Monitor missing logs and flag alerts
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🛠 Tech Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Frontend**: React Native
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Realtime)
+- **Exports**: Google Sheets API
+- **Testing**: Manual QA, unit tests, device testing
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
