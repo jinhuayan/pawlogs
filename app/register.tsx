@@ -10,6 +10,7 @@ const RegisterScreen: React.FC = () => {
   const [registerCode, setRegisterCode] = useState('');
 
   const handleRegister = () => {
+    // TODO: register the user with the provided details
     alert(`Registered as ${name} (${username}) with code: ${registerCode}`);
   };
 
