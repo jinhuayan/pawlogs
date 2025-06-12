@@ -1,17 +1,29 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Image, Alert } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
+import { supabase } from '@/lib/supabase';
+import { router } from 'expo-router';
 
 const RegisterScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [registerCode, setRegisterCode] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    // TODO: register the user with the provided details
-    alert(`Registered as ${name} (${username}) with code: ${registerCode}`);
+
+   async function handleRegister () {
+    setLoading(true);
+    const {error} = await supabase.auth.signUp({ email: username, password: password});
+    
+    if (error) Alert.alert(error.message)
+    else  {
+      setLoading(false);
+      Alert.alert('Registration successful!');
+      router.push('/')
+  }
+    setLoading(false);
   };
 
   return (
@@ -49,7 +61,7 @@ const RegisterScreen: React.FC = () => {
         onChangeText={setRegisterCode}
       />
       <View style={styles.buttonContainer}>
-        <Button title="Register" onPress={handleRegister} />
+        <Button title={loading ? 'Registering...' : "Register"} onPress={handleRegister} disabled={loading}/>
       </View>
     </ThemedView>
   );
@@ -90,3 +102,7 @@ const styles = StyleSheet.create({
 });
 
 export default RegisterScreen;
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
