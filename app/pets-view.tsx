@@ -1,21 +1,21 @@
 import React from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList, Button } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
+import { useRouter } from 'expo-router';  // import router
 
 export const meta = {
-  title: 'Pets View', 
+  title: 'Pets View',
 };
 
-// Example roles: "foster" or "admin"
-const userRole: 'foster' | 'admin' = 'foster'; // Change this to test
+const userRole: 'foster' | 'admin' = 'foster';
 
 type Pet = {
   id: string;
   name: string;
   age: number;
   location: string;
-  assigned?: boolean; // true if assigned to this foster
+  assigned?: boolean;
 };
 
 const allPets: Pet[] = [
@@ -26,7 +26,8 @@ const allPets: Pet[] = [
 ];
 
 const PetsScreen: React.FC = () => {
-  // Show only assigned pets for foster, all pets for admin
+  const router = useRouter(); // get router
+
   const petsToShow = userRole === 'foster'
     ? allPets.filter(pet => pet.assigned)
     : allPets;
@@ -36,6 +37,10 @@ const PetsScreen: React.FC = () => {
       <ThemedText type="title" style={styles.header}>
         {userRole === 'foster' ? ' 🐾  My Assigned Pets' : ' 🐾  All Pets'}
       </ThemedText>
+
+      {/* Add Pet button */}
+      <Button title="Add Pet" onPress={() => router.push('/create-pet')} />
+
       <FlatList
         data={petsToShow}
         keyExtractor={item => item.id}
@@ -54,7 +59,6 @@ const PetsScreen: React.FC = () => {
               </ThemedText>
             </View>
             <View style={styles.iconGroup}>
-              {/* Replace these Views with your icons if you have them */}
               <View style={styles.iconPlaceholder} />
               <View style={styles.iconPlaceholder} />
               <View style={styles.iconPlaceholder} />
