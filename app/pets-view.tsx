@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, Button } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Button } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { useRouter } from 'expo-router';  // import router
+import { useRouter } from 'expo-router';
 
 export const meta = {
   title: 'Pets View',
@@ -15,18 +15,20 @@ type Pet = {
   name: string;
   age: number;
   location: string;
+  emoji?: string;
   assigned?: boolean;
+  status: 'Fostering' | 'Adopted' | 'Transferred';
 };
 
 const allPets: Pet[] = [
-  { id: '1', name: 'Luna', age: 3, location: 'Toronto', assigned: true },
-  { id: '2', name: 'Mochi', age: 1, location: 'North York', assigned: true },
-  { id: '3', name: 'Tofu', age: 2, location: 'North York', assigned: false },
-  { id: '4', name: 'Biscuit', age: 4, location: 'Scarborough', assigned: false },
+  { id: '1', name: 'Luna', age: 3, location: 'Toronto', emoji: '🐈', assigned: true, status: 'Fostering' },
+  { id: '2', name: 'Mochi', age: 1, location: 'North York', emoji: '🐕', assigned: true, status: 'Adopted' },
+  { id: '3', name: 'Tofu', age: 2, location: 'North York', emoji: '🐾', assigned: false, status: 'Transferred' },
+  { id: '4', name: 'Biscuit', age: 4, location: 'Scarborough', emoji: '🐕', assigned: false, status: 'Fostering' },
 ];
 
 const PetsScreen: React.FC = () => {
-  const router = useRouter(); // get router
+  const router = useRouter();
 
   const petsToShow = userRole === 'foster'
     ? allPets.filter(pet => pet.assigned)
@@ -38,17 +40,27 @@ const PetsScreen: React.FC = () => {
         {userRole === 'foster' ? ' 🐾  My Assigned Pets' : ' 🐾  All Pets'}
       </ThemedText>
 
-      {/* Add Pet button */}
-      <Button title="Add Pet" onPress={() => router.push('/create-pet')} />
+      <Button
+        title="Create New Pet"
+        onPress={() => router.push('/create-pet')}
+        color="#7c5fc9"
+      />
 
       <FlatList
         data={petsToShow}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 24, marginTop: 16 }}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              router.push(
+                `/pet-activity?petId=${item.id}&name=${item.name}&age=${item.age}&emoji=${item.emoji || '🐾'}`
+              )
+            }
+          >
             <View style={styles.avatarCircle}>
-              <ThemedText style={styles.avatarText}>A</ThemedText>
+              <ThemedText style={styles.avatarText}>{item.emoji || '🐾'}</ThemedText>
             </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.petName}>
@@ -57,13 +69,11 @@ const PetsScreen: React.FC = () => {
               <ThemedText style={styles.petLocation}>
                 Location: {item.location}
               </ThemedText>
+              <ThemedText style={styles.petStatus}>
+                Status: {item.status}
+              </ThemedText>
             </View>
-            <View style={styles.iconGroup}>
-              <View style={styles.iconPlaceholder} />
-              <View style={styles.iconPlaceholder} />
-              <View style={styles.iconPlaceholder} />
-            </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </ThemedView>
@@ -71,18 +81,8 @@ const PetsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#faf9fa',
-    padding: 16,
-    paddingTop: 32,
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    marginLeft: 4,
-  },
+  container: { flex: 1, backgroundColor: '#faf9fa', padding: 16, paddingTop: 32 },
+  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16, marginLeft: 4 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -120,18 +120,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
   },
-  iconGroup: {
-    flexDirection: 'row',
-    marginLeft: 12,
-    gap: 8,
-  },
-  iconPlaceholder: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    backgroundColor: '#e6d6fa',
-    marginLeft: 8,
-    opacity: 0.4,
+  petStatus: {
+    fontSize: 13,
+    color: '#888',
+    fontStyle: 'italic',
+    marginTop: 2,
   },
 });
 
