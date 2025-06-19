@@ -1,12 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Button } from 'react-native';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
+import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-
-export const meta = {
-  title: 'Pets View',
-};
 
 const userRole: 'foster' | 'admin' = 'foster';
 
@@ -35,97 +29,74 @@ const PetsScreen: React.FC = () => {
     : allPets;
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.header}>
-        {userRole === 'foster' ? ' 🐾  My Assigned Pets' : ' 🐾  All Pets'}
-      </ThemedText>
-
-      <Button
-        title="Create New Pet"
-        onPress={() => router.push('/create-pet')}
-        color="#7c5fc9"
-      />
+    <View style={styles.container}>
+      <Text style={styles.header}>
+        {userRole === 'foster' ? 'My Assigned Pets' : 'All Pets'}
+      </Text>
 
       <FlatList
         data={petsToShow}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 24, marginTop: 16 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
             onPress={() =>
-              router.push(
-                `/pet-activity?petId=${item.id}&name=${item.name}&age=${item.age}&emoji=${item.emoji || '🐾'}`
-              )
+              router.push(`/pet-calendar?petId=${item.id}&name=${item.name}&age=${item.age}&emoji=${item.emoji || '🐾'}`)
             }
           >
             <View style={styles.avatarCircle}>
-              <ThemedText style={styles.avatarText}>{item.emoji || '🐾'}</ThemedText>
+              <Text style={styles.avatarText}>{item.emoji || '🐾'}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={styles.petName}>
-                {item.name} (Age {item.age})
-              </ThemedText>
-              <ThemedText style={styles.petLocation}>
-                Location: {item.location}
-              </ThemedText>
-              <ThemedText style={styles.petStatus}>
-                Status: {item.status}
-              </ThemedText>
+              <Text style={styles.petName}>{item.name} (Age {item.age})</Text>
+              <Text style={styles.petLocation}>Location: {item.location}</Text>
+              <Text style={styles.petStatus}>Status: {item.status}</Text>
             </View>
           </TouchableOpacity>
         )}
       />
-    </ThemedView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#faf9fa', padding: 16, paddingTop: 32 },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16, marginLeft: 4 },
+  container: { flex: 1, backgroundColor: '#fdf6ff', padding: 16 },
+  header: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#7c5fc9',
+    textAlign: 'center',
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f2fa',
+    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#ddd',
     shadowColor: '#000',
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
+    elevation: 2,
   },
   avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: '#e6d6fa',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
   },
-  avatarText: {
-    fontWeight: 'bold',
-    color: '#7c5fc9',
-    fontSize: 18,
-  },
-  petName: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  petLocation: {
-    fontSize: 14,
-    color: '#555',
-  },
-  petStatus: {
-    fontSize: 13,
-    color: '#888',
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
+  avatarText: { fontWeight: 'bold', color: '#7c5fc9', fontSize: 20 },
+  petName: { fontWeight: 'bold', fontSize: 18, marginBottom: 4, color: '#333' },
+  petLocation: { fontSize: 16, color: '#555' },
+  petStatus: { fontSize: 14, color: '#888', fontStyle: 'italic', marginTop: 4 },
 });
 
 export default PetsScreen;
