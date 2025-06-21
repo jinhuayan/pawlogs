@@ -1,16 +1,31 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/providers/AuthProvider';
 
 const LoginScreen: React.FC = () => {
+  const { session } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // TODO: Navigate to the pets view on successful login
-    router.push('/pets-view');
+  if (loading) {
+    return <ActivityIndicator/>;}
+
+  if (session) {
+   router.push('/pets-view'); // Redirect to home if already logged in
+  }
+
+  async function handleLogin () {
+      //setLoading(true);
+      const {error} = await supabase.auth.signInWithPassword({ email: username, password: password});
+      if (error) Alert.alert(error.message)
+        else  {
+      router.push('/pets-view');};
+      //setLoading(false);
   };
 
   return (
@@ -36,7 +51,7 @@ const LoginScreen: React.FC = () => {
         secureTextEntry
       />
       <View style={styles.buttonContainer}>
-        <Button title="Login" onPress={handleLogin} />
+        <Button title="Login" onPress={handleLogin}/>
       </View>
       <TouchableOpacity onPress={() => router.push('/register')}>
         <ThemedText style={styles.registerLink}>
