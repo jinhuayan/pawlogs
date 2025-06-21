@@ -4,6 +4,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
+import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
 const RegisterScreen: React.FC = () => {
   const [name, setName] = useState('');
@@ -27,6 +28,7 @@ const RegisterScreen: React.FC = () => {
   };
 
   return (
+    <KeyboardAvoidingWrapper>
     <ThemedView style={styles.container}>
       <Image
         source={require('@/assets/ourimage/logo.png')}
@@ -64,6 +66,7 @@ const RegisterScreen: React.FC = () => {
         <Button title={loading ? 'Registering...' : "Register"} onPress={handleRegister} disabled={loading}/>
       </View>
     </ThemedView>
+    </KeyboardAvoidingWrapper>
   );
 };
 
