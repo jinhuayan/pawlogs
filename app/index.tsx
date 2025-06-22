@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
+import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
 const LoginScreen: React.FC = () => {
   const { session } = useAuth();
@@ -13,52 +14,56 @@ const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   if (loading) {
-    return <ActivityIndicator/>;}
-
-  if (session) {
-   router.push('/pets-view'); // Redirect to home if already logged in
+    return <ActivityIndicator />;
   }
 
-  async function handleLogin () {
-      //setLoading(true);
-      const {error} = await supabase.auth.signInWithPassword({ email: username, password: password});
-      if (error) Alert.alert(error.message)
-        else  {
-      router.push('/pets-view');};
-      //setLoading(false);
+  if (session) {
+    router.push('/pets-view'); // Redirect to home if already logged in
+  }
+
+  async function handleLogin() {
+    //setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: username, password: password });
+    if (error) Alert.alert(error.message)
+    else {
+      router.push('/pets-view');
+    };
+    //setLoading(false);
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <Image
-        source={require('@/assets/ourimage/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <ThemedText type="title" style={styles.title}>Login</ThemedText>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <View style={styles.buttonContainer}>
-        <Button title="Login" onPress={handleLogin}/>
-      </View>
-      <TouchableOpacity onPress={() => router.push('/register')}>
-        <ThemedText style={styles.registerLink}>
-          Not registered? Register here
-        </ThemedText>
-      </TouchableOpacity>
-    </ThemedView>
+    <KeyboardAvoidingWrapper>
+      <ThemedView style={styles.container}>
+        <Image
+          source={require('@/assets/ourimage/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <ThemedText type="title" style={styles.title}>Login</ThemedText>
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <View style={styles.buttonContainer}>
+          <Button title="Login" onPress={handleLogin} />
+        </View>
+        <TouchableOpacity onPress={() => router.push('/register')}>
+          <ThemedText style={styles.registerLink}>
+            Not registered? Register here
+          </ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    </KeyboardAvoidingWrapper>
   );
 };
 
