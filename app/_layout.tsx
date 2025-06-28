@@ -8,6 +8,17 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { HeaderTitle } from '@react-navigation/elements';
 import AuthProvider from '@/providers/AuthProvider';
 
+import * as Notifications from 'expo-notifications';
+
+// ✅ Set notification handler globally (important for local notifications to appear)
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -15,7 +26,6 @@ export default function RootLayout() {
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
@@ -26,7 +36,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ title: "Login" }} />
         </Stack>
         <StatusBar style="auto" />
-        </AuthProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

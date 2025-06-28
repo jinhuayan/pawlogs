@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { router } from 'expo-router';
@@ -7,29 +17,90 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
+import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
+
 const LoginScreen: React.FC = () => {
   const { session } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (loading) {
-    return <ActivityIndicator />;
-  }
-
-  if (session) {
-    router.push('/pets-view'); // Redirect to home if already logged in
-  }
-
-  async function handleLogin() {
-    //setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: username, password: password });
-    if (error) Alert.alert(error.message)
-    else {
-      router.push('/pets-view');
+  // Setup Android notification channel for Expo SDK 53+
+  useEffect(() => {
+    const setupNotificationChannel = async () => {
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'Default',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+        });
+      }
     };
-    //setLoading(false);
+    setupNotificationChannel();
+  }, []);
+
+  // Show loading spinner
+  if (loading) return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+
+  // Redirect if already logged in
+  if (session) {
+    router.push('/pets-view');
+  }
+
+  // Ask for notification permission (SDK 53+)
+  const askNotificationPermission = async () => {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    if (existingStatus !== 'granted') {
+      const { status: newStatus } = await Notifications.requestPermissionsAsync();
+      if (newStatus !== 'granted') {
+        Alert.alert('Permission required', 'Please enable notifications to receive reminders.');
+      }
+    }
   };
+
+  // Remind only if 24h have passed
+  const remindDailyAfterLogin = async () => {
+    const LAST_REMINDER_KEY = 'LAST_DAILY_FOSTER_REMINDER';
+    const last = await SecureStore.getItemAsync(LAST_REMINDER_KEY);
+    const lastDate = last ? new Date(last) : null;
+    const now = new Date();
+    const hoursSince = lastDate ? (now.getTime() - lastDate.getTime()) / 36e5 : Infinity;
+
+    if (hoursSince >= 24) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '🐾 Log Reminder',
+          body: 'Don’t forget to log your foster pet’s activities today!',
+          sound: true,
+        },
+        trigger: null, // fire immediately
+      });
+
+      await SecureStore.setItemAsync(LAST_REMINDER_KEY, now.toISOString());
+    }
+  };
+
+  // Login function with reminder
+  async function handleLogin() {
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
+    });
+
+    if (error) {
+      Alert.alert(error.message);
+    } else {
+      await askNotificationPermission();
+      await remindDailyAfterLogin();
+      router.push('/pets-view');
+    }
+
+    setLoading(false);
+  }
 
   return (
     <KeyboardAvoidingWrapper>
@@ -40,6 +111,7 @@ const LoginScreen: React.FC = () => {
           resizeMode="contain"
         />
         <ThemedText type="title" style={styles.title}>Login</ThemedText>
+
         <TextInput
           style={styles.input}
           placeholder="Username"
@@ -54,9 +126,11 @@ const LoginScreen: React.FC = () => {
           onChangeText={setPassword}
           secureTextEntry
         />
+
         <View style={styles.buttonContainer}>
           <Button title="Login" onPress={handleLogin} />
         </View>
+
         <TouchableOpacity onPress={() => router.push('/register')}>
           <ThemedText style={styles.registerLink}>
             Not registered? Register here
