@@ -2,21 +2,27 @@
   "expo": {
     "name": "pawlogs",
     "slug": "pawlogs",
+    "scheme": "pawlogs",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "pawlogs",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSUserNotificationUsageDescription": "This app uses notifications to remind you to log pet activities daily."
+      }
     },
     "android": {
+      "package": "com.naitik.pawlogs",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": ["NOTIFICATIONS"],
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",
@@ -34,7 +40,8 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true

@@ -24,8 +24,8 @@ const StorageAdapter = isWeb
       removeItem: (key: string) => SecureStore.deleteItemAsync(key),
     };
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl;
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Supabase environment variables are missing. Check your .env and Expo config.");

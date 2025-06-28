@@ -1,0 +1,52 @@
+diff --git a/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/buildOutputCleanup.lock b/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/buildOutputCleanup.lock
+new file mode 100644
+index 0000000..78f0e9d
+Binary files /dev/null and b/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/buildOutputCleanup.lock differ
+diff --git a/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/cache.properties b/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/cache.properties
+new file mode 100644
+index 0000000..0807b6f
+--- /dev/null
++++ b/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/cache.properties
+@@ -0,0 +1,2 @@
++#Thu Jun 26 09:11:22 EDT 2025
++gradle.version=7.6.5
+diff --git a/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/outputFiles.bin b/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/outputFiles.bin
+new file mode 100644
+index 0000000..ed9b7ad
+Binary files /dev/null and b/node_modules/@react-native/gradle-plugin/.gradle/buildOutputCleanup/outputFiles.bin differ
+diff --git a/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts b/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts
+index 022f60c..b1b0a68 100644
+--- a/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts
++++ b/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts
+@@ -64,10 +64,10 @@ kotlin { jvmToolchain(17) }
+ tasks.withType<KotlinCompile>().configureEach {
+   compilerOptions {
+     apiVersion.set(KotlinVersion.KOTLIN_1_7)
+-    // See comment above on JDK 11 support
+     jvmTarget.set(JvmTarget.JVM_11)
+-    allWarningsAsErrors =
+-        project.properties["enableWarningsAsErrors"]?.toString()?.toBoolean() ?: false
++    allWarningsAsErrors.set(
++      project.findProperty("enableWarningsAsErrors")?.toString()?.toBoolean() ?: false
++    )
+   }
+ }
+ 
+diff --git a/node_modules/@react-native/gradle-plugin/settings-plugin/build.gradle.kts b/node_modules/@react-native/gradle-plugin/settings-plugin/build.gradle.kts
+index 8f5ae86..f863ceb 100644
+--- a/node_modules/@react-native/gradle-plugin/settings-plugin/build.gradle.kts
++++ b/node_modules/@react-native/gradle-plugin/settings-plugin/build.gradle.kts
+@@ -54,10 +54,10 @@ kotlin { jvmToolchain(17) }
+ tasks.withType<KotlinCompile>().configureEach {
+   compilerOptions {
+     apiVersion.set(KotlinVersion.KOTLIN_1_7)
+-    // See comment above on JDK 11 support
+     jvmTarget.set(JvmTarget.JVM_11)
+-    allWarningsAsErrors =
+-        project.properties["enableWarningsAsErrors"]?.toString()?.toBoolean() ?: false
++    allWarningsAsErrors.set(
++      project.findProperty("enableWarningsAsErrors")?.toString()?.toBoolean() ?: false
++    )
+   }
+ }
+ 
