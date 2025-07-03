@@ -1,7 +1,18 @@
-import { Redirect, router } from 'expo-router';
+import { useAuth } from '@/providers/AuthProvider';
+import { Redirect} from 'expo-router';
+import { ActivityIndicator } from 'react-native';
 
 const index = () => {
-  return <Redirect href={'(auth)/login'} />;
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    return <ActivityIndicator />;
+  }
+
+  if (!session) {
+    return <Redirect href={'(auth)/login'} />; // Redirect to home if already logged in
+  }
+  return <Redirect href={'(user)/pets-view'} />;
 }
 
 export default index;

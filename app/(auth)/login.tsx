@@ -8,27 +8,19 @@ import { useAuth } from '@/providers/AuthProvider';
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
 const LoginScreen: React.FC = () => {
-  const { session } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (loading) {
-    return <ActivityIndicator />;
-  }
-
-  if (session) {
-    router.push('/(user)/pets-view'); // Redirect to home if already logged in
-  }
 
   async function handleLogin() {
-//    setLoading(true);
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: username, password: password });
     if (error) Alert.alert(error.message)
     else {
-      router.push('/(user)/pets-view');
+      router.push('/');
     };
-    //setLoading(false);
+    setLoading(false);
   };
 
   return (
@@ -55,7 +47,7 @@ const LoginScreen: React.FC = () => {
           secureTextEntry
         />
         <View style={styles.buttonContainer}>
-          <Button title="Login" onPress={handleLogin} />
+          <Button title={loading ? 'Logging in...' : "Login"} onPress={handleLogin} disabled={loading}/>
         </View>
         <TouchableOpacity onPress={() => router.push('/register')}>
           <ThemedText style={styles.registerLink}>
