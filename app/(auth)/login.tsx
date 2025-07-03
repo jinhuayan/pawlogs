@@ -22,7 +22,7 @@ const LoginScreen: React.FC = () => {
   }
 
   async function handleLogin() {
-    setLoading(true);
+//    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: username, password: password });
     if (error) Alert.alert(error.message)
     else {

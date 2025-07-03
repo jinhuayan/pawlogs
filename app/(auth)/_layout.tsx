@@ -11,7 +11,7 @@ export default function AuthLayout() {
   return <Stack>
     <Stack.Screen
       name="login"
-      options={{ title: 'Sign in' }}
+      options={{ title: 'Login' }}
     />
     <Stack.Screen
       name="register"
