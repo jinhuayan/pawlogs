@@ -24,9 +24,6 @@
       }
     }
   },
-  "hooks": {
-    "pre-install": "./.eas/hooks/pre-install/google-services-decode.sh"
-  },
   "submit": {
     "production": {}
   }
