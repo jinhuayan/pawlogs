@@ -9,6 +9,7 @@ export default {
     android: {
       package: "com.naitikpatel2410.pawlog",
       googleServicesFile: "./android/app/google-services.json",
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       useNextNotificationsApi: true,
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
