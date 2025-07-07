@@ -8,19 +8,28 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
+        "GOOGLE_SERVICES_JSON_BASE64": "@GOOGLE_SERVICES_JSON_BASE64"
+      },
+      "hooks": {
+        "pre-install": "./.eas/hooks/pre-install/google-services-decode.sh"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
+        "GOOGLE_SERVICES_JSON_BASE64": "@GOOGLE_SERVICES_JSON_BASE64"
+      },
+      "hooks": {
+        "pre-install": "./.eas/hooks/pre-install/google-services-decode.sh"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
+        "GOOGLE_SERVICES_JSON_BASE64": "@GOOGLE_SERVICES_JSON_BASE64"
+      },
+      "hooks": {
+        "pre-install": "./.eas/hooks/pre-install/google-services-decode.sh"
       }
     }
   },
