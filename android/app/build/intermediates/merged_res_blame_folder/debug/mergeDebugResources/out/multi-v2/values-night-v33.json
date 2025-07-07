@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.naitik.pawlogs.app-mergeDebugResources-65:/values-night-v33/values-night-v33.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\zpanaiti\\.gradle\\caches\\9.0-milestone-1\\transforms\\90ced80314032e880a39d11816484a6e\\transformed\\core-splashscreen-1.2.0-alpha02\\res\\values-night-v33\\values-night-v33.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "4",
+                        "endColumns": "12",
+                        "endOffsets": "215"
+                    }
+                }
+            ]
+        }
+    ]
+}
