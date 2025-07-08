@@ -14,6 +14,9 @@ export default {
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
+
+      // ✅ Added for Firebase push notification support
+      googleServicesFile: "./android/app/google-services.json",
     },
     ios: {
       bundleIdentifier: "com.naitikpatel2410.pawlog",
@@ -43,6 +46,9 @@ export default {
         },
       ],
       "expo-secure-store",
+
+      // ✅ Add the localization plugin if using expo-localization
+      "expo-localization",
     ],
     experiments: {
       typedRoutes: true,

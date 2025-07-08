@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Alert, Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
@@ -8,6 +8,7 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 import * as Notifications from 'expo-notifications';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -19,7 +20,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-async function sendLoginReminderNotification(token: string) {
+async function sendReminderNotification(token: string) {
   if (!token) return;
 
   try {
@@ -33,8 +34,8 @@ async function sendLoginReminderNotification(token: string) {
       body: JSON.stringify({
         to: token,
         sound: 'default',
-        title: 'Reminder to Update Logs',
-        body: 'Please remember to update your pet activity logs today!',
+        title: "Hey! Don't forget to add the Logs.",
+        body: 'Check in and update your pet activity for the day 🐾',
       }),
     });
   } catch (error) {
@@ -46,18 +47,40 @@ export default function UserLayout() {
   const { session } = useAuth();
   const expoPushToken = usePushNotifications();
 
-  // To avoid multiple sends, use a local state to track notification sent once per login
-  const [notificationSent, setNotificationSent] = useState(false);
+  const notificationCheckRef = useRef(false); // Prevents double sending
 
   useEffect(() => {
-    if (session && expoPushToken && !notificationSent) {
-      sendLoginReminderNotification(expoPushToken);
-      setNotificationSent(true); // mark sent so no repeat on re-render
+    const maybeSendNotification = async () => {
+      const userId = session?.user?.id;
+      const userEmail = session?.user?.email;
+
+      if (!userId || !expoPushToken || notificationCheckRef.current) return;
+      notificationCheckRef.current = true; // mark as already processed
+
+      const isAdmin = userEmail?.toLowerCase().includes('admin');
+      const intervalMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+
+      const storageKey = `last_notification_timestamp_${userId}`;
+      try {
+        const lastSentString = await AsyncStorage.getItem(storageKey);
+        const now = Date.now();
+
+        if (!lastSentString || now - parseInt(lastSentString, 10) > intervalMs) {
+          await sendReminderNotification(expoPushToken);
+          await AsyncStorage.setItem(storageKey, now.toString());
+        }
+      } catch (err) {
+        console.error('Notification logic error:', err);
+      }
+    };
+
+    if (session) {
+      maybeSendNotification();
     }
-  }, [session, expoPushToken, notificationSent]);
+  }, [session, expoPushToken]);
 
   if (!session) {
-    return <Redirect href={'/'} />;
+    return <Redirect href="/" />;
   }
 
   const handleLogout = () => {
