@@ -6,16 +6,47 @@ import { ThemedText } from '@/components/ThemedText';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+// ⚠️ Logs missing banner for past days
+const LogsMissingBanner = () => (
+  <View style={bannerStyles.banner}>
+    <ThemedText style={bannerStyles.text}>
+      ⚠️ No logs were submitted for this day.
+    </ThemedText>
+  </View>
+);
+
+const bannerStyles = StyleSheet.create({
+  banner: {
+    backgroundColor: '#fff3cd',
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 8,
+    borderColor: '#ffeeba',
+    borderWidth: 1,
+  },
+  text: {
+    color: '#856404',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+});
+
 const PetCalendar: React.FC = () => {
   const router = useRouter();
-  const { petId, name, age, emoji } = useLocalSearchParams<{ petId: string; name: string; age: string; emoji: string }>();
+  const { petId, name, age, emoji } = useLocalSearchParams<{
+    petId: string;
+    name: string;
+    age: string;
+    emoji: string;
+  }>();
 
-  const today = new Date().toISOString().split('T')[0]; // Default to today's date
+  const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
 
+  // 📝 Sample logs (replace with real backend data)
   const logs = [
-    { id: '1', date: today, category: 'Food', emoji: '🥣', time: '9:00 AM', notes: 'Ate well.' },
-    { id: '2', date: today, category: 'Litter', emoji: '💩', time: '1:00 PM', notes: 'Cleaned litter box.' },
+    { id: '1', date: '2025-07-06', category: 'Food', emoji: '🥣', time: '9:00 AM', notes: 'Ate well.' },
+    { id: '2', date: '2025-07-06', category: 'Litter', emoji: '💩', time: '1:00 PM', notes: 'Cleaned litter box.' },
     { id: '3', date: '2025-06-16', category: 'Medication', emoji: '💊', time: '6:00 PM', notes: 'Gave painkiller.' },
   ];
 
@@ -25,6 +56,10 @@ const PetCalendar: React.FC = () => {
   }, {} as { [date: string]: { marked: boolean; dotColor: string } });
 
   const activitiesForSelectedDate = logs.filter(log => log.date === selectedDate);
+
+  // 🚨 Show banner if selected date is in the past AND no logs exist for that date
+  const isPastDate = selectedDate < today;
+  const logsMissing = isPastDate && activitiesForSelectedDate.length === 0;
 
   const handleDayPress = (day: { dateString: string }) => {
     setSelectedDate(day.dateString);
@@ -67,6 +102,9 @@ const PetCalendar: React.FC = () => {
         }}
         style={styles.calendar}
       />
+
+      {/* 🚨 Show banner if selected past date has no logs */}
+      {logsMissing && <LogsMissingBanner />}
 
       <FlatList
         data={activitiesForSelectedDate}

@@ -1,23 +1,97 @@
+import React, { useEffect, useRef } from 'react';
+import { Alert, Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { FontAwesome } from '@expo/vector-icons';
 import { Redirect, router, Stack } from 'expo-router';
-import { Alert, Pressable, View } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
-export default function UserLayout() {
+import * as Notifications from 'expo-notifications';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
+async function sendReminderNotification(token: string) {
+  if (!token) return;
+
+  try {
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: token,
+        sound: 'default',
+        title: "Hey! Don't forget to add the Logs.",
+        body: 'Check in and update your pet activity for the day 🐾',
+      }),
+    });
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+  }
+}
+
+export default function UserLayout() {
   const { session } = useAuth();
+  const expoPushToken = usePushNotifications();
+
+  const notificationCheckRef = useRef(false); // Prevents double sending
+
+  useEffect(() => {
+    const maybeSendNotification = async () => {
+      const userId = session?.user?.id;
+      const userEmail = session?.user?.email;
+
+      if (!userId || !expoPushToken || notificationCheckRef.current) return;
+      notificationCheckRef.current = true; // mark as already processed
+
+      const isAdmin = userEmail?.toLowerCase().includes('admin');
+      const intervalMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+
+      const storageKey = `last_notification_timestamp_${userId}`;
+      try {
+        const lastSentString = await AsyncStorage.getItem(storageKey);
+        const now = Date.now();
+
+        if (!lastSentString || now - parseInt(lastSentString, 10) > intervalMs) {
+          await sendReminderNotification(expoPushToken);
+          await AsyncStorage.setItem(storageKey, now.toString());
+        }
+      } catch (err) {
+        console.error('Notification logic error:', err);
+      }
+    };
+
+    if (session) {
+      maybeSendNotification();
+    }
+  }, [session, expoPushToken]);
+
   if (!session) {
-    return <Redirect href={'/'} />;
+    return <Redirect href="/" />;
   }
 
   const handleLogout = () => {
-    supabase.auth.signOut().then(() => {
-      router.push('/');
-    }).catch((error) => {
-      Alert.alert('Logout Error', error.message);
-    });
+    supabase.auth
+      .signOut()
+      .then(() => {
+        router.push('/');
+      })
+      .catch(error => {
+        Alert.alert('Logout Error', error.message);
+      });
   };
 
   return (
@@ -28,24 +102,24 @@ export default function UserLayout() {
         },
         headerLeft: () => null,
         headerRight: () => (
-          <Pressable onPress={handleLogout}>{({ pressed }) => (
-            <FontAwesome
-              name="sign-out"
-              size={20}
-              color={Colors.light.tint}
-              style={{ opacity: pressed ? 0.5 : 1 }}
-            />
-          )}
+          <Pressable onPress={handleLogout}>
+            {({ pressed }) => (
+              <FontAwesome
+                name="sign-out"
+                size={20}
+                color={Colors.light.tint}
+                style={{ opacity: pressed ? 0.5 : 1 }}
+              />
+            )}
           </Pressable>
         ),
-
-
-      }}>
+      }}
+    >
       <Stack.Screen
         name="pets-view"
         options={{
           title: 'Pet Views',
-          headerBackVisible: false
+          headerBackVisible: false,
         }}
       />
     </Stack>
