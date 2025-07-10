@@ -8,8 +8,9 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 export default function UserLayout() {
 
   const { session, user, isAdmin } = useAuth();
-  console.log('UserLayout session:', isAdmin);
-  console.log('UserLayout session:', user);
+  console.log('User Details:', user);
+  console.log('Is Admin:', isAdmin);
+  
   if (!session) {
     return <Redirect href={'/'} />;
   }

@@ -25,8 +25,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-
-
       if (session) {
         const { data } = await supabase
           .from('users')
@@ -36,7 +34,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         setUser(data || null);
       }
       setLoading(false);
-
     };
 
     fetchSession();
