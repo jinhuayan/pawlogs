@@ -3,7 +3,7 @@ import { Redirect} from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 
 const index = () => {
-  const { session, loading } = useAuth();
+  const { session, user, loading } = useAuth();
 
   if (loading) {
     return <ActivityIndicator />;

@@ -22,7 +22,7 @@ const RegisterScreen: React.FC = () => {
     else  {
       setLoading(false);
       Alert.alert('Registration successful!');
-      router.push('/')
+      router.push('(users)/login')
   }
     setLoading(false);
   };

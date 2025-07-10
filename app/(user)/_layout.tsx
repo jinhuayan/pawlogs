@@ -7,7 +7,9 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function UserLayout() {
 
-  const { session } = useAuth();
+  const { session, user, isAdmin } = useAuth();
+  console.log('UserLayout session:', isAdmin);
+  console.log('UserLayout session:', user);
   if (!session) {
     return <Redirect href={'/'} />;
   }
@@ -28,15 +30,30 @@ export default function UserLayout() {
         },
         headerLeft: () => null,
         headerRight: () => (
-          <Pressable onPress={handleLogout}>{({ pressed }) => (
-            <FontAwesome
-              name="sign-out"
-              size={20}
-              color={Colors.light.tint}
-              style={{ opacity: pressed ? 0.5 : 1 }}
-            />
-          )}
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 16, paddingRight: 10 }}>
+            {isAdmin && (
+              <Pressable onPress={() => router.push('/(admin)/admin-home')}>
+                {({ pressed }) => (
+                  <FontAwesome
+                    name="gear"
+                    size={20}
+                    color={Colors.light.tint}
+                    style={{ opacity: pressed ? 0.5 : 1 }}
+                  />
+                )}
+              </Pressable>
+            )}
+            <Pressable onPress={handleLogout}>
+              {({ pressed }) => (
+                <FontAwesome
+                  name="sign-out"
+                  size={20}
+                  color={Colors.light.tint}
+                  style={{ opacity: pressed ? 0.5 : 1 }}
+                />
+              )}
+            </Pressable>
+          </View>
         ),
 
 
@@ -48,6 +65,7 @@ export default function UserLayout() {
           headerBackVisible: false
         }}
       />
+      <Stack.Screen name="(admin)" options={{ headerShown: false }} />
     </Stack>
   );
 }
