@@ -6,6 +6,8 @@ export type Pet = {
   emoji?: string;
   assigned?: boolean;
   status: 'Fostering' | 'Adopted' | 'Transferred';
+  species?: string;
+  dob?: string | Date; // Date of birth, optional for pets without a known DOB
 };
 
 export type PetsViewListProps = {
