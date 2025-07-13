@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Alert, Pressable } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { FontAwesome } from '@expo/vector-icons';
@@ -10,10 +10,6 @@ import * as Notifications from 'expo-notifications';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-  const { session, user, isAdmin } = useAuth();
-  console.log('User Details:', user);
-  console.log('Is Admin:', isAdmin);
-  
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -48,15 +44,20 @@ async function sendReminderNotification(token: string) {
 }
 
 export default function UserLayout() {
-  const { session } = useAuth();
+
+  const { user, isAdmin } = useAuth();
+
+  console.log('User Details:', user);
+  console.log('Is Admin:', isAdmin);
   const expoPushToken = usePushNotifications();
 
   const notificationCheckRef = useRef(false); // Prevents double sending
 
   useEffect(() => {
+
     const maybeSendNotification = async () => {
-      const userId = session?.user?.id;
-      const userEmail = session?.user?.email;
+      const userId = user?.user_id;
+      const userEmail = user?.email;
 
       if (!userId || !expoPushToken || notificationCheckRef.current) return;
       notificationCheckRef.current = true; // mark as already processed
@@ -78,25 +79,26 @@ export default function UserLayout() {
       }
     };
 
-    if (session) {
+    if (user) {
       maybeSendNotification();
     }
-  }, [session, expoPushToken]);
-
-  if (!session) {
-    return <Redirect href="/" />;
-  }
+  }, [user, expoPushToken]);
 
   const handleLogout = () => {
     supabase.auth
       .signOut()
-      .then(() => {
-        router.push('/');
-      })
       .catch(error => {
         Alert.alert('Logout Error', error.message);
       });
   };
+
+  const handleAdminSetting = () => {
+    router.push('/(user)/(admin)/admin-home');
+  };
+
+  if (!user) {
+      return <Redirect href={'/'} />;
+  }
 
   return (
     <Stack
@@ -106,10 +108,9 @@ export default function UserLayout() {
         },
         headerLeft: () => null,
         headerRight: () => (
-<<<<<<< HEAD
           <View style={{ flexDirection: 'row', gap: 16, paddingRight: 10 }}>
             {isAdmin && (
-              <Pressable onPress={() => router.push('/(admin)/admin-home')}>
+              <Pressable onPress={handleAdminSetting}>
                 {({ pressed }) => (
                   <FontAwesome
                     name="gear"
@@ -131,28 +132,10 @@ export default function UserLayout() {
               )}
             </Pressable>
           </View>
-=======
-          <Pressable onPress={handleLogout}>
-            {({ pressed }) => (
-              <FontAwesome
-                name="sign-out"
-                size={20}
-                color={Colors.light.tint}
-                style={{ opacity: pressed ? 0.5 : 1 }}
-              />
-            )}
-          </Pressable>
->>>>>>> a14f4b1bb250f358104e1dbcc5754f111a1525e6
         ),
       }}
     >
-      <Stack.Screen
-        name="pets-view"
-        options={{
-          title: 'Pet Views',
-          headerBackVisible: false,
-        }}
-      />
+
       <Stack.Screen name="(admin)" options={{ headerShown: false }} />
     </Stack>
   );

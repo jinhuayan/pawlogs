@@ -46,7 +46,6 @@ const RegisterScreen: React.FC = () => {
 
     Alert.alert('Registration successful!', 'You can now log in with your credentials.'); 
     setLoading(false);
-    router.push('/login');
   };
 
   return (
