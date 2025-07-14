@@ -5,8 +5,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import { usePetList } from '@/api/pets';
 
 const PetsScreen: React.FC = () => {
-  const { data: pets, isLoading, error } = usePetList();
-  //console.log('Pets Data:', pets);
+  const { data: petsQuery, isLoading, error } = usePetList();
+  const pets = petsQuery || [];
   const { isAdmin } = useAuth();
 
   if (isLoading) {
@@ -26,7 +26,7 @@ const PetsScreen: React.FC = () => {
         keyExtractor={item => item.pet_id}
         contentContainerStyle={{ paddingBottom: 24 }}
         renderItem={({ item }) => (
-          <PetsViewList Pet={item} Mode={'user'} PressablePath={`/pet-calendar?petId=${item.collar_id}&name=${item.name}&emoji=${'🐾'}`} />
+          <PetsViewList Pet={item} Mode={'user'} PressablePath={`/pet-calendar?petId=${item.pet_id}`} />
         )}
       />)}
       {pets && pets.length === 0 && (
