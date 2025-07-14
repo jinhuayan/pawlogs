@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, Alert } from 'react-native';
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Image,
+  Alert
+} from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { supabase } from '@/lib/supabase';
@@ -13,8 +20,12 @@ const RegisterScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-
   async function handleRegister() {
+    if (!fname.trim() || !lname.trim() || !username.trim() || !password.trim()) {
+      Alert.alert('Missing Fields', 'Please fill out all fields.');
+      return;
+    }
+
     setLoading(true);
     const { error: signUpError } = await supabase.auth.signUp({
       email: username,
@@ -25,8 +36,8 @@ const RegisterScreen: React.FC = () => {
           lname,
           email: username,
         },
-        emailRedirectTo: undefined  // Set this if you want to redirect after email confirmation
-      }
+        emailRedirectTo: undefined,
+      },
     });
 
     if (signUpError) {
@@ -35,18 +46,21 @@ const RegisterScreen: React.FC = () => {
       return;
     }
 
-    // Immediately sign the user out to prevent active session
     const { error: signOutError } = await supabase.auth.signOut();
 
     if (signOutError) {
-      Alert.alert('Registration succeeded, but sign-out failed. Please close the app and log in again.');
+      Alert.alert(
+        'Registration succeeded, but sign-out failed.',
+        'Please close the app and log in again.'
+      );
       setLoading(false);
       return;
     }
 
-    Alert.alert('Registration successful!', 'You can now log in with your credentials.'); 
+    Alert.alert('Registration successful!', 'You can now log in with your credentials.');
     setLoading(false);
-  };
+    router.push('/login');
+  }
 
   return (
     <KeyboardAvoidingWrapper>
@@ -57,6 +71,7 @@ const RegisterScreen: React.FC = () => {
           resizeMode="contain"
         />
         <ThemedText type="title" style={styles.title}>Register</ThemedText>
+
         <TextInput
           style={styles.input}
           placeholder="First Name"
@@ -83,8 +98,13 @@ const RegisterScreen: React.FC = () => {
           onChangeText={setPassword}
           secureTextEntry
         />
+
         <View style={styles.buttonContainer}>
-          <Button title={loading ? 'Registering...' : "Register"} onPress={handleRegister} disabled={loading} />
+          <Button
+            title={loading ? 'Registering...' : 'Register'}
+            onPress={handleRegister}
+            disabled={loading}
+          />
         </View>
       </ThemedView>
     </KeyboardAvoidingWrapper>
@@ -126,7 +146,3 @@ const styles = StyleSheet.create({
 });
 
 export default RegisterScreen;
-
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
