@@ -17,9 +17,6 @@ const LoginScreen: React.FC = () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: username, password: password });
     if (error) Alert.alert(error.message)
-    else {
-      router.push('/');
-    };
     setLoading(false);
   };
 

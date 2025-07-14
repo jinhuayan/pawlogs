@@ -4,8 +4,7 @@ import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import PetsViewList from '@/components/PetsViewList';
 import { Pet } from '@/types';
-
-const userRole: 'foster' | 'admin' = 'foster';
+import { useAuth } from '@/providers/AuthProvider';
 
 const allPets: Pet[] = [
   { id: '1', name: 'Luna', age: 3, location: 'Toronto', emoji: '🐈', assigned: true, status: 'Fostering' },
@@ -15,7 +14,12 @@ const allPets: Pet[] = [
 ];
 
 const PetsScreen: React.FC = () => {
+  var userRole = 'foster'; // Default role for users
   const router = useRouter();
+  const { isAdmin } = useAuth();
+  if (isAdmin) {
+    userRole = 'admin';
+  }
 
   const petsToShow = userRole === 'foster'
     ? allPets.filter(pet => pet.assigned)

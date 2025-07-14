@@ -7,65 +7,86 @@ import { router } from 'expo-router';
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
 const RegisterScreen: React.FC = () => {
-  const [name, setName] = useState('');
+  const [fname, setFname] = useState('');
+  const [lname, setLname] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [registerCode, setRegisterCode] = useState('');
   const [loading, setLoading] = useState(false);
 
 
-   async function handleRegister () {
+  async function handleRegister() {
     setLoading(true);
-    const {error} = await supabase.auth.signUp({ email: username, password: password});
-    
-    if (error) Alert.alert(error.message)
-    else  {
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: username,
+      password: password,
+      options: {
+        data: {
+          fname,
+          lname,
+          email: username,
+        },
+        emailRedirectTo: undefined  // Set this if you want to redirect after email confirmation
+      }
+    });
+
+    if (signUpError) {
+      Alert.alert(signUpError.message);
       setLoading(false);
-      Alert.alert('Registration successful!');
-      router.push('/')
-  }
+      return;
+    }
+
+    // Immediately sign the user out to prevent active session
+    const { error: signOutError } = await supabase.auth.signOut();
+
+    if (signOutError) {
+      Alert.alert('Registration succeeded, but sign-out failed. Please close the app and log in again.');
+      setLoading(false);
+      return;
+    }
+
+    Alert.alert('Registration successful!', 'You can now log in with your credentials.'); 
     setLoading(false);
   };
 
   return (
     <KeyboardAvoidingWrapper>
-    <ThemedView style={styles.container}>
-      <Image
-        source={require('@/assets/ourimage/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <ThemedText type="title" style={styles.title}>Register</ThemedText>
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Register Code"
-        value={registerCode}
-        onChangeText={setRegisterCode}
-      />
-      <View style={styles.buttonContainer}>
-        <Button title={loading ? 'Registering...' : "Register"} onPress={handleRegister} disabled={loading}/>
-      </View>
-    </ThemedView>
+      <ThemedView style={styles.container}>
+        <Image
+          source={require('@/assets/ourimage/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <ThemedText type="title" style={styles.title}>Register</ThemedText>
+        <TextInput
+          style={styles.input}
+          placeholder="First Name"
+          value={fname}
+          onChangeText={setFname}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Last Name"
+          value={lname}
+          onChangeText={setLname}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <View style={styles.buttonContainer}>
+          <Button title={loading ? 'Registering...' : "Register"} onPress={handleRegister} disabled={loading} />
+        </View>
+      </ThemedView>
     </KeyboardAvoidingWrapper>
   );
 };
