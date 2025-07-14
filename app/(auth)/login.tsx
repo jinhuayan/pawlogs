@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Alert
+} from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/AuthProvider';
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
 const LoginScreen: React.FC = () => {
@@ -12,13 +19,27 @@ const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-
   async function handleLogin() {
+    if (!username.trim() || !password.trim()) {
+      Alert.alert('Missing Fields', 'Please enter both username and password.');
+      return;
+    }
+
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: username, password: password });
-    if (error) Alert.alert(error.message)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
+    });
+
+    if (error) {
+      Alert.alert('Login Failed', error.message);
+    } else {
+      router.push('/');
+    }
+
     setLoading(false);
-  };
+  }
 
   return (
     <KeyboardAvoidingWrapper>
@@ -29,6 +50,7 @@ const LoginScreen: React.FC = () => {
           resizeMode="contain"
         />
         <ThemedText type="title" style={styles.title}>Login</ThemedText>
+
         <TextInput
           style={styles.input}
           placeholder="Username"
@@ -43,9 +65,15 @@ const LoginScreen: React.FC = () => {
           onChangeText={setPassword}
           secureTextEntry
         />
+
         <View style={styles.buttonContainer}>
-          <Button title={loading ? 'Logging in...' : "Login"} onPress={handleLogin} disabled={loading}/>
+          <Button
+            title={loading ? 'Logging in...' : 'Login'}
+            onPress={handleLogin}
+            disabled={loading}
+          />
         </View>
+
         <TouchableOpacity onPress={() => router.push('/register')}>
           <ThemedText style={styles.registerLink}>
             Not registered? Register here
