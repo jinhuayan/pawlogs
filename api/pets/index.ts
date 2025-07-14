@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from '@/providers/AuthProvider';
 import { useAssignedPet } from "@/api/pets_assigned";
 
-export const usePetList = () => {
+export const usePetsList = () => {
   const { user, isAdmin } = useAuth();
   const { data: assignedPetQuery, error } = useAssignedPet();
 

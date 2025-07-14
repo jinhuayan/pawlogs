@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { FontAwesome } from '@expo/vector-icons';
@@ -91,11 +91,6 @@ export default function UserLayout() {
         Alert.alert('Logout Error', error.message);
       });
   };
-
-  const handleAdminSetting = () => {
-    router.push('/(user)/(admin)/admin-home');
-  };
-
   if (!user) {
       return <Redirect href={'/'} />;
   }
@@ -110,7 +105,7 @@ export default function UserLayout() {
         headerRight: () => (
           <View style={{ flexDirection: 'row', gap: 16, paddingRight: 10 }}>
             {isAdmin && (
-              <Pressable onPress={handleAdminSetting}>
+              <Pressable onPress={() => router.push('/admin-home')}>
                 {({ pressed }) => (
                   <FontAwesome
                     name="gear"
@@ -137,6 +132,21 @@ export default function UserLayout() {
     >
 
       <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+      <Stack.Screen name="pets-view"
+        options={{ title: 'Pet View', headerBackVisible: false }}
+      />
+      <Stack.Screen name="pet-calendar"
+        options={{ title: 'Pet Calendar' }}
+      />
+      <Stack.Screen name="pet-activity"
+        options={{ title: 'Pet Activity' }}
+      />
+      <Stack.Screen name="edit-log"
+        options={{ title: 'Edit Log' }}
+      />
+      <Stack.Screen name="create-pet"
+        options={{ title: 'Edit Log' }}
+      />
     </Stack>
   );
 }

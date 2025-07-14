@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, Text, ActivityIndicator } from 'react-native';
 import PetsViewList from '@/components/PetsViewList';
 import { useAuth } from '@/providers/AuthProvider';
-import { usePetList } from '@/api/pets';
+import { usePetsList } from '@/api/pets';
 
 const PetsScreen: React.FC = () => {
-  const { data: petsQuery, isLoading, error } = usePetList();
+  const { data: petsQuery, isLoading, error } = usePetsList();
   const pets = petsQuery || [];
   const { isAdmin } = useAuth();
 
