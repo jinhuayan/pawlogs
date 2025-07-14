@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { queryClient } from '@/providers/QueryProvider';
+import { Alert } from 'react-native';
 
 type AuthData = {
   session: Session | null;
@@ -32,6 +34,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         .eq('user_id', session.user.id)
         .single();
       setUser(data || null);
+
     } else {
       setUser(null);
     }
@@ -57,6 +60,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         setSession(session);
         await fetchUser(session);
         setLoading(false);
+        if (!session) {
+        queryClient.clear(); // Clear cache on logout
+      }
       }
     );
 

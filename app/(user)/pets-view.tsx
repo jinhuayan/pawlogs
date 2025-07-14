@@ -1,43 +1,37 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native';
-import { useRouter } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
+import { View, StyleSheet, FlatList, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import PetsViewList from '@/components/PetsViewList';
-import { Pet } from '@/types';
 import { useAuth } from '@/providers/AuthProvider';
-
-const allPets: Pet[] = [
-  { id: '1', name: 'Luna', age: 3, location: 'Toronto', emoji: '🐈', assigned: true, status: 'Fostering' },
-  { id: '2', name: 'Mochi', age: 1, location: 'North York', emoji: '🐕', assigned: true, status: 'Adopted' },
-  { id: '3', name: 'Tofu', age: 2, location: 'North York', emoji: '🐾', assigned: false, status: 'Transferred' },
-  { id: '4', name: 'Biscuit', age: 4, location: 'Scarborough', emoji: '🐕', assigned: false, status: 'Fostering' },
-];
+import { usePetList } from '@/api/pets';
 
 const PetsScreen: React.FC = () => {
-  var userRole = 'foster'; // Default role for users
-  const router = useRouter();
+  const { data: petsQuery, isLoading, error } = usePetList();
+  const pets = petsQuery || [];
   const { isAdmin } = useAuth();
-  if (isAdmin) {
-    userRole = 'admin';
-  }
 
-  const petsToShow = userRole === 'foster'
-    ? allPets.filter(pet => pet.assigned)
-    : allPets;
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
+  if (error) {
+    return <Text>Failed to fetch Pets</Text>;
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>
-        {userRole === 'foster' ? 'My Assigned Pets' : 'All Pets'}
+        {isAdmin === false ? 'My Assigned Pets' : 'All Pets'}
       </Text>
-      <FlatList
-        data={petsToShow}
-        keyExtractor={item => item.id}
+      {pets && pets.length > 0 && (<FlatList
+        data={pets}
+        keyExtractor={item => item.pet_id}
         contentContainerStyle={{ paddingBottom: 24 }}
         renderItem={({ item }) => (
-          <PetsViewList Pet={item} Mode={'user'} PressablePath={`/pet-calendar?petId=${item.id}&name=${item.name}&age=${item.age}&emoji=${item.emoji || '🐾'}`} />
+          <PetsViewList Pet={item} Mode={'user'} PressablePath={`/pet-calendar?petId=${item.pet_id}`} />
         )}
-      />
+      />)}
+      {pets && pets.length === 0 && (
+        <Text style={{ textAlign: 'center', marginTop: 20 }}>No pets found.</Text>
+      )}
     </View>
   );
 };

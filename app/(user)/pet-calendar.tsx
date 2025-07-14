@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { usePetList } from '@/api/pets';
 
 // ⚠️ Logs missing banner for past days
 const LogsMissingBanner = () => (
@@ -33,15 +34,14 @@ const bannerStyles = StyleSheet.create({
 
 const PetCalendar: React.FC = () => {
   const router = useRouter();
-  const { petId, name, age, emoji } = useLocalSearchParams<{
+  const { petId} = useLocalSearchParams<{
     petId: string;
-    name: string;
-    age: string;
-    emoji: string;
   }>();
-
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
+  const { data: petsQuery, isLoading, error } = usePetList();
+  const pet = petsQuery?.find(p => p.pet_id === petId);
+
 
   // 📝 Sample logs (replace with real backend data)
   const logs = [
@@ -65,10 +65,17 @@ const PetCalendar: React.FC = () => {
     setSelectedDate(day.dateString);
   };
 
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
+  if (error) {
+    return <Text>Failed to fetch Pets</Text>;
+  }
+
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.header}>
-        {emoji} {name} - Activity Calendar
+        {pet.emoji || '🐾'} {pet.name} - Activity Calendar
       </ThemedText>
 
       <TouchableOpacity
@@ -76,7 +83,7 @@ const PetCalendar: React.FC = () => {
         onPress={() =>
           router.push({
             pathname: '/pet-activity',
-            params: { petId, name, emoji },
+            params: { petId, name: pet.name, emoji: pet.emoji || '🐾' },
           })
         }
       >
@@ -143,7 +150,7 @@ const PetCalendar: React.FC = () => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push(`/add-log?petId=${petId}&name=${name}&emoji=${emoji}`)}
+        onPress={() => router.push(`/add-log?petId=${petId}`)}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={32} color="#fff" />

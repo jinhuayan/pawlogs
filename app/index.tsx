@@ -11,6 +11,7 @@ const index = () => {
   }
   else {
     if (!session) {
+      
       console.log('Index: User is not authenticated, redirecting to login');
       return <Redirect href={'/(auth)/login'} />; // Redirect to login if not authenticated
     }

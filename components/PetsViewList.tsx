@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import {PetsViewListProps} from '@/types';
+import {calculateAge} from '@/utils/calculateAge';
 
 export default function PetsViewList({ Pet, Mode, PressablePath }: PetsViewListProps) {
   const router = useRouter();
@@ -10,15 +11,15 @@ export default function PetsViewList({ Pet, Mode, PressablePath }: PetsViewListP
     <TouchableOpacity
                 style={styles.card}
                 onPress={() =>
-                  router.push(PressablePath)
+                  router.push(PressablePath as any)
                 }
               >
                 <View style={styles.avatarCircle}>
                   <Text style={styles.avatarText}>{Pet.emoji || '🐾'}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.petName}>{Pet.name} (Age {Pet.age})</Text>
-                  <Text style={styles.petLocation}>Location: {Pet.location}</Text>
+                  <Text style={styles.petName}>{Pet.name} (Age {calculateAge(Pet.dob as any)})</Text>
+                  <Text style={styles.petLocation}>Species: {Pet.species}</Text>
                   <Text style={styles.petStatus}>Status: {Pet.status}</Text>
                 </View>
               </TouchableOpacity>
