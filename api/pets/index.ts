@@ -4,8 +4,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useAssignedPet } from "@/api/pets_assigned";
 
 export const usePetsList = () => {
-  const { user, isAdmin } = useAuth();
-  const { data: assignedPetQuery, error } = useAssignedPet();
+  const { isAdmin } = useAuth();
+  const assignedPetQuery = !isAdmin ? useAssignedPet().data : undefined;
 
   return useQuery({
     queryKey: ['pets', isAdmin, assignedPetQuery],
