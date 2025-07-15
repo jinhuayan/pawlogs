@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { Alert, Pressable, View } from 'react-native';
-import { supabase } from '@/lib/supabase';
+import React, { useEffect, useRef, useState } from 'react';
+import {  Pressable, View } from 'react-native';
 import { useAuth } from '@/providers/AuthProvider';
-import { FontAwesome } from '@expo/vector-icons';
+import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { Redirect, router, Stack } from 'expo-router';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 import * as Notifications from 'expo-notifications';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MyProfileModal from '@/components/MyProfile';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -46,6 +46,7 @@ async function sendReminderNotification(token: string) {
 export default function UserLayout() {
 
   const { user, isAdmin } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
 
   console.log('User Details:', user);
   console.log('Is Admin:', isAdmin);
@@ -84,69 +85,66 @@ export default function UserLayout() {
     }
   }, [user, expoPushToken]);
 
-  const handleLogout = () => {
-    supabase.auth
-      .signOut()
-      .catch(error => {
-        Alert.alert('Logout Error', error.message);
-      });
-  };
   if (!user) {
-      return <Redirect href={'/'} />;
+    return <Redirect href={'/'} />;
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: Colors.light.background,
-        },
-        headerLeft: () => null,
-        headerRight: () => (
-          <View style={{ flexDirection: 'row', gap: 16, paddingRight: 10 }}>
-            {isAdmin && (
-              <Pressable onPress={() => router.push('/admin-home')}>
+    <>
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: Colors.light.background,
+          },
+          headerLeft: () => null,
+          headerRight: () => (
+            <View style={{ flexDirection: 'row', gap: 16, paddingRight: 10 }}>
+              {isAdmin && (
+                <Pressable onPress={() => router.push('/admin-home')}>
+                  {({ pressed }) => (
+                    <MaterialIcons
+                      name="admin-panel-settings"
+                      size={20}
+                      color={Colors.light.tint}
+                      style={{ opacity: pressed ? 0.5 : 1 }}
+                    />
+                  )}
+                </Pressable>
+              )}
+              <Pressable onPress={() => setShowProfile(true)}>
                 {({ pressed }) => (
-                  <FontAwesome
-                    name="gear"
+                  <AntDesign
+                    name="setting"
                     size={20}
                     color={Colors.light.tint}
                     style={{ opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
               </Pressable>
-            )}
-            <Pressable onPress={handleLogout}>
-              {({ pressed }) => (
-                <FontAwesome
-                  name="sign-out"
-                  size={20}
-                  color={Colors.light.tint}
-                  style={{ opacity: pressed ? 0.5 : 1 }}
-                />
-              )}
-            </Pressable>
-          </View>
-        ),
-      }}
-    >
+            </View>
+          ),
+        }}
+      >
 
-      <Stack.Screen name="(admin)" options={{ headerShown: false }} />
-      <Stack.Screen name="pets-view"
-        options={{ title: 'Pet View', headerBackVisible: false }}
-      />
-      <Stack.Screen name="pet-calendar"
-        options={{ title: 'Pet Calendar' }}
-      />
-      <Stack.Screen name="pet-activity"
-        options={{ title: 'Pet Activity' }}
-      />
-      <Stack.Screen name="edit-log"
-        options={{ title: 'Edit Log' }}
-      />
-      <Stack.Screen name="create-pet"
-        options={{ title: 'Edit Log' }}
-      />
-    </Stack>
+        <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+        <Stack.Screen name="pets-view"
+          options={{ title: 'Pet View', headerBackVisible: false }}
+        />
+        <Stack.Screen name="pet-calendar"
+          options={{ title: 'Pet Calendar' }}
+        />
+        <Stack.Screen name="pet-activity"
+          options={{ title: 'Pet Activity' }}
+        />
+        <Stack.Screen name="edit-log"
+          options={{ title: 'Edit Log' }}
+        />
+        <Stack.Screen name="create-pet"
+          options={{ title: 'Edit Log' }}
+        />
+      </Stack>
+
+      <MyProfileModal visible={showProfile} onClose={() => setShowProfile(false)} />
+    </>
   );
 }
