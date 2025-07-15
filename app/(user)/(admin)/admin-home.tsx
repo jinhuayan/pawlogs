@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/providers/AuthProvider';
 
 export default function AdminHomeScreen() {
   const router = useRouter();
@@ -12,14 +11,14 @@ export default function AdminHomeScreen() {
       <Text style={styles.title}>Admin Dashboard</Text>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.push('/admin/manage-pets')}
+        onPress={() => router.push('/manage-pets')}
       >
         <Text style={styles.buttonText}>Manage Pets</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.push('/admin/manage-users')}
+        onPress={() => router.push('/manage-users')}
       >
         <Text style={styles.buttonText}>Manage Users</Text>
       </TouchableOpacity>

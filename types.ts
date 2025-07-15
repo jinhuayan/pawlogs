@@ -15,3 +15,19 @@ export type PetsViewListProps = {
   Mode: 'user' | 'admin';
   PressablePath: string;
 };
+
+export type User = {
+  user_id: string;
+  email: string;
+  fname: string;
+  lname: string;
+  role: 'admin' | 'foster';
+  active: boolean;
+  approved_by: string | null;
+  approved: boolean;
+};
+
+export type UsersViewListProps = {
+  User: User;
+  PressablePath: string;
+};

@@ -5,7 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { usePetList } from '@/api/pets';
+import { usePetsList } from '@/api/pets';
 
 // ⚠️ Logs missing banner for past days
 const LogsMissingBanner = () => (
@@ -39,7 +39,7 @@ const PetCalendar: React.FC = () => {
   }>();
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
-  const { data: petsQuery, isLoading, error } = usePetList();
+  const { data: petsQuery, isLoading, error } = usePetsList();
   const pet = petsQuery?.find(p => p.pet_id === petId);
 
 
