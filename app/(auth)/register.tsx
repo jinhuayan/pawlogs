@@ -16,25 +16,25 @@ import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 const RegisterScreen: React.FC = () => {
   const [fname, setFname] = useState('');
   const [lname, setLname] = useState('');
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState(''); // Changed from username to email
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
-    if (!fname.trim() || !lname.trim() || !username.trim() || !password.trim()) {
+    if (!fname.trim() || !lname.trim() || !email.trim() || !password.trim()) {
       Alert.alert('Missing Fields', 'Please fill out all fields.');
       return;
     }
 
     setLoading(true);
     const { error: signUpError } = await supabase.auth.signUp({
-      email: username,
+      email: email,
       password: password,
       options: {
         data: {
           fname,
           lname,
-          email: username,
+          email: email,
         },
         emailRedirectTo: undefined,
       },
@@ -86,10 +86,11 @@ const RegisterScreen: React.FC = () => {
         />
         <TextInput
           style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
           autoCapitalize="none"
+          keyboardType="email-address"
         />
         <TextInput
           style={styles.input}

@@ -15,7 +15,7 @@ export default {
       },
       edgeToEdgeEnabled: true,
 
-      // ✅ Added for Firebase push notification support
+      //  Added for Firebase push notification support
       googleServicesFile: "./android/app/google-services.json",
     },
     ios: {
@@ -47,7 +47,7 @@ export default {
       ],
       "expo-secure-store",
 
-      // ✅ Add the localization plugin if using expo-localization
+      // Add the localization plugin if using expo-localization
       "expo-localization",
     ],
     experiments: {
