@@ -28,4 +28,24 @@ export const usePetsList = () => {
       return assignedPetsData;
     }
   });
+  
+};
+
+export const usePetData = (pet_id: string) => {
+
+  return useQuery({
+    queryKey: ['petData', pet_id],
+    queryFn: async () => {
+      const { data: petData, error: petDataError } = await supabase
+        .from('pets')
+        .select('*')
+        .eq('pet_id', pet_id)
+        .single();
+      if (petDataError) {
+        throw new Error(petDataError.message);
+      }
+      return petData;
+    }
+  });
+  
 }

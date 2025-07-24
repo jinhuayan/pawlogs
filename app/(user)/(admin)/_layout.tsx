@@ -61,6 +61,10 @@ export default function UserLayout() {
           name="manage-users"
           options={{ title: 'Manage Users' }}
         />
+        <Stack.Screen
+          name="edit-user"
+          options={{ title: 'Edit User' }}
+        />
       </Stack>
       <MyProfileModal visible={showProfile} onClose={() => setShowProfile(false)} />
     </>
