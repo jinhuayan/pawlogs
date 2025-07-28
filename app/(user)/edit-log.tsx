@@ -15,14 +15,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const activityCategories = ['Food', 'Water', 'Litter', 'Medication', 'Play', 'Other'];
-const statuses = ['Fostering', 'Adopted', 'Transferred'];
 
 const EditLogScreen: React.FC = () => {
   const router = useRouter();
-  const { id, category, status, notes, timestamp } = useLocalSearchParams<{
+  const { id, category, notes, timestamp } = useLocalSearchParams<{
     id: string;
     category: string;
-    status: string;
     notes: string;
     timestamp: string;
   }>();
@@ -30,7 +28,6 @@ const EditLogScreen: React.FC = () => {
   const [logDate, setLogDate] = useState(new Date(timestamp || Date.now()));
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [logCategory, setLogCategory] = useState(category || activityCategories[0]);
-  const [logStatus, setLogStatus] = useState(status || statuses[0]);
   const [logNotes, setLogNotes] = useState(notes || '');
 
   const handleTimeChange = (_event: any, selectedTime?: Date) => {
@@ -76,15 +73,6 @@ const EditLogScreen: React.FC = () => {
             <Picker selectedValue={logCategory} onValueChange={setLogCategory}>
               {activityCategories.map(cat => (
                 <Picker.Item label={cat} value={cat} key={cat} />
-              ))}
-            </Picker>
-          </View>
-
-          <Text style={styles.label}>📝 Status</Text>
-          <View style={styles.inputBox}>
-            <Picker selectedValue={logStatus} onValueChange={setLogStatus}>
-              {statuses.map(s => (
-                <Picker.Item label={s} value={s} key={s} />
               ))}
             </Picker>
           </View>

@@ -11,7 +11,6 @@ const AddLogScreen = () => {
   const [date, setDate] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [category, setCategory] = useState('Food');
-  const [status, setStatus] = useState('Fostering');
   const [notes, setNotes] = useState('');
 
   const handleSubmit = () => {
@@ -44,15 +43,6 @@ const AddLogScreen = () => {
         <Picker selectedValue={category} onValueChange={setCategory}>
           {['Food', 'Water', 'Litter', 'Medication', 'Play', 'Other'].map(c => (
             <Picker.Item label={c} value={c} key={c} />
-          ))}
-        </Picker>
-      </View>
-
-      <Text style={styles.label}>Status:</Text>
-      <View style={styles.inputBox}>
-        <Picker selectedValue={status} onValueChange={setStatus}>
-          {['Fostering', 'Adopted', 'Transferred'].map(s => (
-            <Picker.Item label={s} value={s} key={s} />
           ))}
         </Picker>
       </View>
