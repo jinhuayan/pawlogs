@@ -1,14 +1,14 @@
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '@/providers/AuthProvider';
-import { useAssignedPet } from "@/api/pets_assigned";
+import { useAssignedPets } from "@/api/pets_assigned";
 
 export const usePetsList = () => {
-  const { isAdmin } = useAuth();
-  const assignedPetQuery = !isAdmin ? useAssignedPet().data : undefined;
+  const { user, isAdmin } = useAuth();
+  const assignedPetQuery = !isAdmin ? useAssignedPets(user.user_id).data : undefined;
 
   return useQuery({
-    queryKey: ['pets', isAdmin, assignedPetQuery],
+    queryKey: ['pets'],
     enabled: isAdmin || (!!assignedPetQuery && assignedPetQuery.length > 0),
     queryFn: async () => {
       if (isAdmin) {
@@ -48,4 +48,71 @@ export const usePetData = (pet_id: string) => {
     }
   });
   
+}
+
+export const useInsertPet = ()=> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    async mutationFn(newPet: any) {
+      console.log('Inserting new pet:', newPet);
+      const { data: newPetData, error } = await supabase
+        .from('pets')
+        .insert({
+          name: newPet.name,
+          species: newPet.species,
+          breed: newPet.breed,
+          gender: newPet.gender,
+          status: newPet.status,
+          profile_photo: newPet.profile_photo,
+          dob: newPet.dob,
+          location: newPet.location
+        })
+        .single();
+      if (error) {
+        console.log('Error inserting pet:', error.message);
+        throw new Error(error.message);
+      }
+      return newPetData;
+    },
+    async onSuccess() {
+      await queryClient.invalidateQueries({ queryKey: ['pets'] });
+    },
+    onError(error: any) {
+      console.log(error.message || 'Failed to insert pet.');
+      throw new Error(error.message || 'Failed to insert pet.');
+    }
+
+  });
+}
+
+export const useUpdatePet = ()=> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    async mutationFn(newPet: any) {
+      const { data: newPetData, error } = await supabase
+        .from('pets')
+        .insert({
+          name: newPet.name,
+          species: newPet.species,
+          breed: newPet.breed,
+          gender: newPet.gender,
+          status: newPet.status,
+          profile_photo: newPet.profile_photo,
+          dob: newPet.dob,
+          location: newPet.location
+        })
+        .single();
+      if (error) {
+        throw new Error(error.message);
+      }
+      return newPetData;
+    },
+    async onSuccess() {
+      await queryClient.invalidateQueries({ queryKey: ['pets'] });
+    },
+    onError(error: any) {
+      throw new Error(error.message || 'Failed to insert pet.');
+    }
+
+  });
 }

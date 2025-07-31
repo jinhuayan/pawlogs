@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from "react";
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useUsersList } from '@/api/users';
-import { View, Text,StyleSheet, TextInput, Button, } from "react-native";
+import React, { useEffect, useState } from "react";
+import { useLocalSearchParams } from 'expo-router';
+import { useUserData, useUsersList } from '@/api/users';
+import { View, Text, StyleSheet, TextInput, Button } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { ActivityIndicator } from 'react-native';
+import { useUpdateUser } from '@/api/users';
+import { useAuth } from "@/providers/AuthProvider";
 
 const roles = [
   { value: "foster", label: "Foster" },
@@ -11,87 +13,86 @@ const roles = [
 ];
 
 const EditUser: React.FC = () => {
-  const router = useRouter();
-  const { userId } = useLocalSearchParams<{
-    userId: string;
-  }>();
-  console.log("Editing user with IDs:", userId);
+  const { userId } = useLocalSearchParams<{ userId: string }>();
+  const {  data: user, isLoading, error } = useUserData(userId);
 
-  const { data: usersQuery, isLoading, error } = useUsersList();
+  const [fname, setFname] = useState("");
+  const [lname, setLname] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("foster");
+  const [active, setActive] = useState(true);
+  const [approved, setApproved] = useState<null | boolean>(null);
 
-  const user = useMemo(
-    () => usersQuery?.find((u: any) => u.user_id === userId),
-    [usersQuery, userId]
-  );
-  console.log("User datas:", user);
+  const { user: admin } = useAuth();
+  const updateUser = useUpdateUser();
 
-  const [form, setForm] = useState(() =>
-    user
-      ? {
-        fname: user.fname,
-        lname: user.lname,
-        email: user.email,
-        role: user.role,
-        active: user.active,
-      }
-      : {
-        fname: "",
-        lname: "",
-        email: "",
-        role: "foster",
-        active: true,
-      }
-  );
+  useEffect(() => {
+    if (user) {
+      setFname(user.fname);
+      setLname(user.lname);
+      setEmail(user.email);
+      setRole(user.role);
+      setActive(user.active);
+      setApproved(user.approved);
+    }
+  }, [user]);
 
-  // Track if form is dirty
   const isDirty =
     user &&
-    (form.fname !== user.fname ||
-      form.lname !== user.lname ||
-      form.role !== user.role ||
-      form.active !== user.active);
+    (fname !== user.fname ||
+      lname !== user.lname ||
+      role !== user.role ||
+      active !== user.active);
 
-  // Handle form changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement;
-    const { name, value, type } = target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? (target as HTMLInputElement).checked : value,
-    }));
-  };
-
-  // Discard changes
   const handleDiscard = () => {
     if (user) {
-      setForm({
-        fname: user.fname,
-        lname: user.lname,
-        email: user.email,
-        role: user.role,
-        active: user.active,
-      });
+      setFname(user.fname);
+      setLname(user.lname);
+      setEmail(user.email);
+      setRole(user.role);
+      setActive(user.active);
+      setApproved(user.approved);
     }
   };
 
-  // Save changes (stub)
-  const handleSave = () => {
-    // Implement save logic here
-    // e.g., call API to update user
+  const handleSave = async () => {
+    if (!user || !admin) return;
+    const updatedFields: any = {
+      fname,
+      lname,
+      role,
+      active,
+    };
+    // If status is set to active, and approved is false or null, update approved and approved_by
+    if (active && (user.approved === false || user.approved === null)) {
+      updatedFields.approved = true;
+      updatedFields.approved_by = admin.user_id;
+    }
+    await updateUser.mutateAsync({ user_id: user.user_id, ...updatedFields });
   };
 
-  // Approve user (stub)
-  const handleApprove = () => {
-    // Implement approve logic here
+  const handleApprove = async () => {
+    if (!user || !admin) return;
+    setApproved(true);
+    const updatedFields: any = {
+      approved: true,
+      approved_by: admin.id
+    };
+    await updateUser.mutateAsync({ user_id: user.user_id, ...updatedFields });
   };
-    // Approve user (stub)
-  const handleDecline = () => {
-    // Implement approve logic here
+
+  const handleDecline = async () => {
+    if (!user || !admin) return;
+    setApproved(false);
+    const updatedFields: any = {
+      approved: false,
+      approved_by: admin.id
+    };
+    await updateUser.mutateAsync({ user_id: user.user_id, ...updatedFields });
   };
 
   if (isLoading) return <ActivityIndicator />;
-  if (error || !user) 
-  {
+  if (error) {
     console.error("Error loading user:", error);
     return <View><Text>Error loading user </Text></View>;
   }
@@ -99,28 +100,27 @@ const EditUser: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Edit User</Text>
-      {/* You can use a ScrollView if the form gets long */}
       <View>
         <Text>First Name:</Text>
         <TextInput
           style={styles.input}
-          value={form.fname}
-          onChangeText={(text) => setForm((prev) => ({ ...prev, fname: text }))}
+          value={fname}
+          onChangeText={setFname}
         />
       </View>
       <View>
         <Text>Last Name:</Text>
         <TextInput
           style={styles.input}
-          value={form.lname}
-          onChangeText={(text) => setForm((prev) => ({ ...prev, lname: text }))}
+          value={lname}
+          onChangeText={setLname}
         />
       </View>
       <View>
         <Text>Email:</Text>
         <TextInput
           style={styles.input}
-          value={form.email}
+          value={email}
           editable={false}
         />
       </View>
@@ -128,8 +128,8 @@ const EditUser: React.FC = () => {
         <Text>Role:</Text>
         <View style={{ borderColor: '#9e7ae7', borderWidth: 1, borderRadius: 12, marginBottom: 18, backgroundColor: '#fff', overflow: 'hidden' }}>
           <Picker
-            selectedValue={form.role}
-            onValueChange={(value) => setForm((prev) => ({ ...prev, role: value }))}
+            selectedValue={role}
+            onValueChange={setRole}
             style={{ height: 50, color: '#7c5fc9' }}
             dropdownIconColor="#7c5fc9"
           >
@@ -143,13 +143,8 @@ const EditUser: React.FC = () => {
         <Text>Status:</Text>
         <View style={{ borderColor: '#9e7ae7', borderWidth: 1, borderRadius: 12, marginBottom: 18, backgroundColor: '#fff', overflow: 'hidden' }}>
           <Picker
-            selectedValue={form.active ? "true" : "false"}
-            onValueChange={(value) =>
-              setForm((prev) => ({
-          ...prev,
-          active: value === "true",
-              }))
-            }
+            selectedValue={active ? "true" : "false"}
+            onValueChange={(value) => setActive(value === "true")}
             style={{ height: 50, color: '#7c5fc9' }}
             dropdownIconColor="#7c5fc9"
           >
@@ -159,8 +154,7 @@ const EditUser: React.FC = () => {
         </View>
       </View>
       <View>
-        {/* Custom colored disabled buttons using View/Text for color */}
-        {user.approved === true && (
+        {approved === true && (
           <View
             style={{
               backgroundColor: "green",
@@ -168,13 +162,13 @@ const EditUser: React.FC = () => {
               borderRadius: 4,
               alignItems: "center",
               marginBottom: 8,
-              opacity: 0.6, // visually indicate disabled
+              opacity: 0.6,
             }}
           >
             <Text style={{ color: "white", fontWeight: "bold" }}>Approved</Text>
           </View>
         )}
-        {user.approved === false && (
+        {approved === false && (
           <View
             style={{
               backgroundColor: "red",
@@ -188,23 +182,23 @@ const EditUser: React.FC = () => {
             <Text style={{ color: "white", fontWeight: "bold" }}>Declined</Text>
           </View>
         )}
-        {user.approved === null && (
-          <View style={styles.buttonWrapper}>
-          <Button
-            title="Approve"
-            color="green"
-            onPress={handleApprove}
-          />
-          </View>
-        )}
-        {user.approved === null && (
-          <View style={styles.buttonWrapper}>
-          <Button
-            title="Decline"
-            color="red"
-            onPress={handleDecline}
-          />
-          </View>
+        {approved === null && (
+          <>
+            <View style={styles.buttonWrapper}>
+              <Button
+                title="Approve"
+                color="green"
+                onPress={handleApprove}
+              />
+            </View>
+            <View style={styles.buttonWrapper}>
+              <Button
+                title="Decline"
+                color="red"
+                onPress={handleDecline}
+              />
+            </View>
+          </>
         )}
       </View>
       <View style={styles.buttonWrapper}>
@@ -215,15 +209,14 @@ const EditUser: React.FC = () => {
         />
       </View>
       <View style={styles.buttonWrapper}>
-      <Button
-        title="Discard"
-        onPress={handleDiscard}
-        disabled={!isDirty}
-      />
-    </View>
+        <Button
+          title="Discard"
+          onPress={handleDiscard}
+          disabled={!isDirty}
+        />
+      </View>
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({

@@ -9,40 +9,48 @@ import {
   Alert,
   Image,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { usePetData } from '@/api/pets';
-import { useLocalSearchParams } from 'expo-router';
+import { usePetData, useUpdatePet } from '@/api/pets';
+import { Stack, useLocalSearchParams } from 'expo-router';
+import { Picker } from '@react-native-picker/picker';
+import { useRouter } from 'expo-router';
+import { useInsertPet } from '@/api/pets';
+import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
 export default function EditPetScreen() {
-  const { petId } = useLocalSearchParams<{ petId: string }>();
-  const isUpdating = !!petId;
-
-  const pet = isUpdating ? usePetData(petId).data : null;
-
   // State for form fields
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
   const [species, setSpecies] = useState('');
-  const [fosterName, setFosterName] = useState('');
+  const [location, setLocation] = useState('');
   const [breed, setBreed] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [status, setStatus] = useState<'available' | 'adopted' | 'fostering' | ''>('');
+
+  const { petId } = useLocalSearchParams<{ petId: string }>();
+  const isUpdating = !!petId;
+
+  const updatingPet = isUpdating ? usePetData(petId).data : null;
+  const { mutate: insertPet } = useInsertPet();
+  const { mutate: updatePet } = useUpdatePet();
+  const router = useRouter();
 
   // Populate fields if editing
   useEffect(() => {
-    if (isUpdating && pet) {
-      setName(pet.name || '');
-      setDob(pet.dob ? String(pet.dob) : '');
-      setSpecies(pet.species || '');
-      setFosterName(pet.location || '');
-      setBreed(pet.breed || '');
-      // If you have photoUri in pet, set it here
-      // setPhotoUri(pet.photoUri || null);
+    if (isUpdating && updatingPet) {
+      setName(updatingPet.name || '');
+      setDob(updatingPet.dob ? String(updatingPet.dob) : '');
+      setSpecies(updatingPet.species || '');
+      setLocation(updatingPet.location || '');
+      setBreed(updatingPet.breed || '');
+      setGender(updatingPet.gender || '');
+      setStatus(updatingPet.status || '');
+      // setPhotoUri(updatingPet.profile_photo || null);
     }
-  }, [isUpdating, pet]);
+  }, [isUpdating, updatingPet]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -63,26 +71,63 @@ export default function EditPetScreen() {
     }
   };
 
-  const handleSubmit = () => {
-    if (!name || !dob || !species || !fosterName || !breed) {
+  const handleCreatePet = async () => {
+    if (!name || !dob || !species || !location || !breed || !gender || !status) {
+      Alert.alert('Missing fields', 'Please fill in all fields.');
+      return;
+    }
+    insertPet(
+      {
+        name,
+        dob,
+        species,
+        breed,
+        gender,
+        status,
+        location,
+        profile_photo: photoUri || null,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert('Success', 'Pet created successfully!', [
+            {
+              text: 'OK',
+              onPress: () => router.back(),
+            },
+          ]);
+        },
+        onError: (error: any) => {
+          Alert.alert('Error', error.message || 'Failed to create pet.');
+        },
+      }
+    );
+  };
+  // Add this function for updating
+  const handleUpdatePet = async () => {
+    if (!name || !dob || !species || !location || !breed || !gender || !status) {
       Alert.alert('Missing fields', 'Please fill in all fields.');
       return;
     }
 
-    Alert.alert(
-      isUpdating ? 'Pet Updated' : 'Pet Created',
-      `Name: ${name}\nDob: ${dob}\nBreed: ${breed}\nSpecies: ${species}\nFoster: ${fosterName}`
-    );
-
-    // TODO: replace with Supabase insert/update logic later
+    try {
+      // You should implement updatePet mutation in your API
+      // For now, just show a success alert
+      // await updatePet.mutateAsync({ ... });
+      Alert.alert('Success', 'Pet updated successfully!', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/manage-pets'),
+        },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to update pet.');
+    }
   };
 
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.select({ ios: 'padding', android: undefined })}
-      style={{ flex: 1 }}
-    >
+    
+    <KeyboardAvoidingWrapper>
+      <Stack.Screen options={{ title: isUpdating ? 'Edit Pet' : 'Create Pet' }} />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.header}>{isUpdating ? 'Edit Pet Profile' : 'Create Pet Profile'}</Text>
 
@@ -95,7 +140,7 @@ export default function EditPetScreen() {
             </View>
           )}
         </TouchableOpacity>
-        <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 6 }}>Pet Name</Text>
+        <Text style={styles.label}>Pet Name</Text>
         <TextInput
           placeholder="Pet Name"
           value={name}
@@ -103,40 +148,72 @@ export default function EditPetScreen() {
           style={styles.input}
         />
 
-        <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 6 }}>Date of Birth</Text>
+        <Text style={styles.label}>Date of Birth</Text>
         <TextInput
-          placeholder="Date of Birth"
+          placeholder="YYYY-MM-DD"
           value={dob}
           onChangeText={setDob}
           style={styles.input}
         />
-        <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 6 }}>Species</Text>
+        <Text style={styles.label}>Species</Text>
         <TextInput
           placeholder="Species"
           value={species}
           onChangeText={setSpecies}
           style={styles.input}
         />
-        <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 6 }}>Breed</Text>
+        <Text style={styles.label}>Breed</Text>
         <TextInput
           placeholder="Breed"
           value={breed}
           onChangeText={setBreed}
           style={styles.input}
         />
-        <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 6 }}>Foster Location</Text>
+
+        <Text style={styles.label}>Gender</Text>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={gender}
+            onValueChange={setGender}
+            style={styles.picker}
+          >
+            <Picker.Item label="Select Gender" value="" />
+            <Picker.Item label="Male" value="male" />
+            <Picker.Item label="Female" value="female" />
+          </Picker>
+        </View>
+
+        <Text style={styles.label}>Status</Text>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={status}
+            onValueChange={setStatus}
+            style={styles.picker}
+          >
+            <Picker.Item label="Select Status" value="" />
+            <Picker.Item label="Available" value="available" />
+            <Picker.Item label="Adopted" value="adopted" />
+            <Picker.Item label="Fostering" value="fostering" />
+          </Picker>
+        </View>
+
+        <Text style={styles.label}>Location</Text>
         <TextInput
-          placeholder="Foster Location"
-          value={fosterName}
-          onChangeText={setFosterName}
+          placeholder="Location"
+          value={location}
+          onChangeText={setLocation}
           style={styles.input}
         />
 
         <View style={styles.buttonWrapper}>
-          <Button title="Submit" onPress={handleSubmit} color="#7c5fc9" />
+          <Button
+            title={isUpdating ? "Update Pet" : "Create Pet"}
+            onPress={isUpdating ? handleUpdatePet : handleCreatePet}
+            color="#7c5fc9"
+          />
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAvoidingWrapper>
   );
 }
 
@@ -187,6 +264,23 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     fontSize: 16,
     backgroundColor: '#fff',
+  },
+  label: {
+    fontWeight: '600',
+    fontSize: 16,
+    marginBottom: 6,
+  },
+  pickerWrapper: {
+    borderColor: '#9e7ae7',
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 18,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 48,
+    width: '100%',
   },
   buttonWrapper: {
     marginTop: 12,

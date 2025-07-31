@@ -3,8 +3,8 @@ import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 
 export default function AuthLayout() {
-  const { session } = useAuth();
-    if (session) {
+  const { user } = useAuth();
+    if (user) {
       return <Redirect href={'/'} />;
   }
   return <Stack>

@@ -45,19 +45,7 @@ const RegisterScreen: React.FC = () => {
       setLoading(false);
       return;
     }
-
-    const { error: signOutError } = await supabase.auth.signOut();
-
-    if (signOutError) {
-      Alert.alert(
-        'Registration succeeded, but sign-out failed.',
-        'Please close the app and log in again.'
-      );
-      setLoading(false);
-      return;
-    }
-
-    Alert.alert('Registration successful!', 'You can now log in with your credentials.');
+    Alert.alert('Registered!');
     setLoading(false);
     router.push('/login');
   }

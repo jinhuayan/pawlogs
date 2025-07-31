@@ -33,6 +33,26 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         .select('*')
         .eq('user_id', session.user.id)
         .single();
+
+      if (data.approved === null) {
+        Alert.alert(
+          'Account Pending Approval',
+          'Your account is pending approval. Please wait for an admin to approve your account.'
+        );
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      if (data.approved === 'FALSE') {
+        Alert.alert(
+          'Account Not Approved',
+          'Your account has not been approved. Please contact support.'
+        );
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      setSession(session);
       setUser(data || null);
 
     } else {
@@ -57,7 +77,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       async (_event: AuthChangeEvent, session) => {
         console.log('Auth state changed:', _event);
         setLoading(true);
-        setSession(session);
         await fetchUser(session);
         setLoading(false);
         if (!session) {

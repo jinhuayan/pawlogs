@@ -17,9 +17,9 @@ const ManageUsers: React.FC = () => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [filterValues, setFilterValues] = useState({
-    status: 'All',
+    status: 'Active',
     role: 'All',
-    approval: 'All',
+    approval: 'Approved',
   });
 
   // Filtering logic

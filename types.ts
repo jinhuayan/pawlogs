@@ -1,13 +1,16 @@
 export type Pet = {
-  id: string;
+  pet_id: string;
+  collar_id: string;
   name: string;
-  age: number;
-  location: string;
-  emoji?: string;
+  location?: string;
+  emoji: string;
   assigned?: boolean;
-  status: 'Fostering' | 'Adopted' | 'Transferred';
+  status: 'fostering' | 'adopted' | 'available';
   species?: string;
   dob?: string | Date; // Date of birth, optional for pets without a known DOB
+  breed?: string;
+  gender?: string;
+  created_at?: string | Date; // Creation date, optional
 };
 
 export type PetsViewListProps = {
