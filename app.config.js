@@ -30,6 +30,11 @@ export default {
     extra: {
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+
+      spreadsheetId:       process.env.EXPO_PUBLIC_SPREADSHEET_ID,
+      exportFunctionUrl:   process.env.EXPO_PUBLIC_EXPORT_URL,
+      googleClientEmail:   process.env.EXPO_PUBLIC_GOOGLE_CLIENT_EMAIL,
+
       eas: {
         projectId: "b7100f6d-40ed-4055-abde-a1dba6a972d5",
       },
