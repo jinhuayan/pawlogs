@@ -13,7 +13,7 @@ const ManagePets: React.FC = () => {
   // Get unique species from pets data
   const speciesSet = new Set<string>();
   pets.forEach(pet => {
-    if (pet.species) speciesSet.add(pet.species);
+    if (pet.species) speciesSet.add((pet.species).toLowerCase());
   });
   const speciesOptions = ['All', ...Array.from(speciesSet)];
 
@@ -31,8 +31,8 @@ const ManagePets: React.FC = () => {
 
   // Filtering logic
   const filteredPets = pets.filter(pet => {
-    const speciesMatch = filterValues.species === 'All' || pet.species === filterValues.species;
-    const statusMatch = pet.status === filterValues.status;
+    const speciesMatch = filterValues.species === 'All' || (pet.species).toLowerCase() === filterValues.species;
+    const statusMatch = pet.status.toLowerCase() === filterValues.status;
     return speciesMatch && statusMatch;
   });
 

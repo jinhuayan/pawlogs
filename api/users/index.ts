@@ -49,21 +49,27 @@ export const useUserData = (user_id: string) => {
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    async mutationFn({ user_id, updatedFields }: { user_id: string, updatedFields: Record<string, any> }) {
-      const { data: updatedUser, error } = await supabase
+    async mutationFn(updateUser: any) {
+      console.log('Updating user with data:', updateUser);
+      const { data: updatedUserData, error } = await supabase
         .from('users')
-        .update(updatedFields)
-        .eq('user_id', user_id)
+        .update(updateUser)
+        .eq('user_id', updateUser.user_id)
+        .select()
         .single();
 
       if (error) {
         throw new Error(error.message);
       }
-      return updatedUser;
+      return updatedUserData;
     },
-    async onSuccess(_, variables) {
+    async onSuccess(_, user_id) {
       await queryClient.invalidateQueries({ queryKey: ['usersList'] });
-      await queryClient.invalidateQueries({ queryKey: ['userData', variables.user_id] });
+      await queryClient.invalidateQueries({ queryKey: ['userData', user_id] });
+    },
+    async onError(error) {
+      console.error('Error updating user:', error);
+      throw error;
     }
   });
 };

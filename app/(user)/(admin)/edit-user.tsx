@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useLocalSearchParams } from 'expo-router';
-import { useUserData, useUsersList } from '@/api/users';
-import { View, Text, StyleSheet, TextInput, Button } from "react-native";
+import React, { use, useEffect, useState } from "react";
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useUserData } from '@/api/users';
+import { View, Text, StyleSheet, TextInput, Button, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { ActivityIndicator } from 'react-native';
 import { useUpdateUser } from '@/api/users';
 import { useAuth } from "@/providers/AuthProvider";
+import KeyboardAvoidingWrapper from "@/components/KeyboardAvoidingWrapper";
 
 const roles = [
   { value: "foster", label: "Foster" },
@@ -22,9 +23,11 @@ const EditUser: React.FC = () => {
   const [role, setRole] = useState("foster");
   const [active, setActive] = useState(true);
   const [approved, setApproved] = useState<null | boolean>(null);
-
+  
   const { user: admin } = useAuth();
-  const updateUser = useUpdateUser();
+  const { mutate: updateUser } = useUpdateUser();
+
+  const router = useRouter();
 
   useEffect(() => {
     if (user) {
@@ -57,38 +60,87 @@ const EditUser: React.FC = () => {
 
   const handleSave = async () => {
     if (!user || !admin) return;
-    const updatedFields: any = {
+    const updateUserFields: any = {
+      user_id: userId,
       fname,
       lname,
-      role,
-      active,
+      role: role.toLowerCase(),
+      active
     };
-    // If status is set to active, and approved is false or null, update approved and approved_by
-    if (active && (user.approved === false || user.approved === null)) {
-      updatedFields.approved = true;
-      updatedFields.approved_by = admin.user_id;
+    if (user.approved === false && active === true) {
+      updateUserFields.approved = true;
+      updateUserFields.approved_by = admin.user_id;
     }
-    await updateUser.mutateAsync({ user_id: user.user_id, ...updatedFields });
+    
+    updateUser(
+      {...updateUserFields},
+      {
+        onSuccess: () => {
+          router.back()
+          Alert.alert('Success', 'User updated successfully!', [
+            {
+              text: 'OK'
+            },
+          ]);
+        },
+        onError: (error) => {
+          Alert.alert('Error', error.message || 'Failed to update user. Please try again.');
+        }
+      }
+    ); 
   };
 
   const handleApprove = async () => {
     if (!user || !admin) return;
     setApproved(true);
-    const updatedFields: any = {
+    const updateUserFields: any = {
+      user_id: userId,
       approved: true,
-      approved_by: admin.id
+      approved_by: admin.user_id
     };
-    await updateUser.mutateAsync({ user_id: user.user_id, ...updatedFields });
+    updateUser(
+      {...updateUserFields},
+      {
+        onSuccess: () => {
+          router.back()
+          Alert.alert('Success', 'User updated successfully!', [
+            {
+              text: 'OK'
+            },
+          ]);
+        },
+        onError: (error) => {
+          Alert.alert('Error', error.message || 'Failed to update user. Please try again.');
+        }
+      }
+    ); 
   };
 
   const handleDecline = async () => {
     if (!user || !admin) return;
     setApproved(false);
-    const updatedFields: any = {
+    const updateUserFields: any = {
+      user_id: userId,
+      active: false,
       approved: false,
-      approved_by: admin.id
+      approved_by: admin.user_id
     };
-    await updateUser.mutateAsync({ user_id: user.user_id, ...updatedFields });
+    updateUser(
+      {...updateUserFields},
+      {
+        onSuccess: () => {
+          router.back()
+          Alert.alert('Success', 'User updated successfully!', [
+            {
+              text: 'OK'
+            },
+          ]);
+        },
+        onError: (error) => {
+          Alert.alert('Error', error.message || 'Failed to update user. Please try again.');
+        }
+      }
+    ); 
   };
 
   if (isLoading) return <ActivityIndicator />;
@@ -98,6 +150,7 @@ const EditUser: React.FC = () => {
   }
 
   return (
+    <KeyboardAvoidingWrapper>
     <View style={styles.container}>
       <Text style={styles.header}>Edit User</Text>
       <View>
@@ -216,6 +269,7 @@ const EditUser: React.FC = () => {
         />
       </View>
     </View>
+    </KeyboardAvoidingWrapper>
   );
 }
 

@@ -77,7 +77,7 @@ export const useInsertPet = ()=> {
     async onSuccess() {
       await queryClient.invalidateQueries({ queryKey: ['pets'] });
     },
-    onError(error: any) {
+    async onError(error: any) {
       console.log(error.message || 'Failed to insert pet.');
       throw new Error(error.message || 'Failed to insert pet.');
     }
@@ -88,30 +88,34 @@ export const useInsertPet = ()=> {
 export const useUpdatePet = ()=> {
   const queryClient = useQueryClient();
   return useMutation({
-    async mutationFn(newPet: any) {
-      const { data: newPetData, error } = await supabase
+    async mutationFn(updatePet: any) {
+      console.log('Updating pet:', updatePet.pet_id);
+      const { data: updatedPetData, error } = await supabase
         .from('pets')
-        .insert({
-          name: newPet.name,
-          species: newPet.species,
-          breed: newPet.breed,
-          gender: newPet.gender,
-          status: newPet.status,
-          profile_photo: newPet.profile_photo,
-          dob: newPet.dob,
-          location: newPet.location
+        .update({
+          name: updatePet.name,
+          species: updatePet.species,
+          breed: updatePet.breed,
+          gender: updatePet.gender,
+          status: updatePet.status,
+          dob: updatePet.dob,
+          location: updatePet.location
         })
+        .eq('pet_id', updatePet.pet_id)
+        .select()
         .single();
+      console.log('Updated pet data:', updatedPetData);
       if (error) {
         throw new Error(error.message);
       }
-      return newPetData;
+      return updatedPetData;
     },
-    async onSuccess() {
+    async onSuccess(_, {pet_id}) {
       await queryClient.invalidateQueries({ queryKey: ['pets'] });
+      await queryClient.invalidateQueries({ queryKey: ['petData', pet_id] });
     },
-    onError(error: any) {
-      throw new Error(error.message || 'Failed to insert pet.');
+    async onError(error: any) {
+      throw new Error(error.message || 'Failed to update pet.');
     }
 
   });

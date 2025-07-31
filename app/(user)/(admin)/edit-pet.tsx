@@ -43,11 +43,11 @@ export default function EditPetScreen() {
     if (isUpdating && updatingPet) {
       setName(updatingPet.name || '');
       setDob(updatingPet.dob ? String(updatingPet.dob) : '');
-      setSpecies(updatingPet.species || '');
+      setSpecies((updatingPet.species || '').toLowerCase());
       setLocation(updatingPet.location || '');
       setBreed(updatingPet.breed || '');
-      setGender(updatingPet.gender || '');
-      setStatus(updatingPet.status || '');
+      setGender((updatingPet.gender || '').toLowerCase());
+      setStatus((updatingPet.status || '').toLowerCase());
       // setPhotoUri(updatingPet.profile_photo || null);
     }
   }, [isUpdating, updatingPet]);
@@ -89,10 +89,10 @@ export default function EditPetScreen() {
       },
       {
         onSuccess: () => {
+          router.back()
           Alert.alert('Success', 'Pet created successfully!', [
             {
               text: 'OK',
-              onPress: () => router.back(),
             },
           ]);
         },
@@ -109,19 +109,32 @@ export default function EditPetScreen() {
       return;
     }
 
-    try {
-      // You should implement updatePet mutation in your API
-      // For now, just show a success alert
-      // await updatePet.mutateAsync({ ... });
-      Alert.alert('Success', 'Pet updated successfully!', [
-        {
-          text: 'OK',
-          onPress: () => router.replace('/manage-pets'),
+    updatePet(
+      {
+        pet_id: petId,
+        name,
+        dob,
+        species,
+        breed,
+        gender,
+        status,
+        location,
+        profile_photo: photoUri || null,
+      },
+      {
+        onSuccess: () => {
+          router.back()
+          Alert.alert('Success', 'Pet updated!', [
+            {
+              text: 'OK'
+            },
+          ]);
         },
-      ]);
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update pet.');
-    }
+        onError: (error: any) => {
+          Alert.alert('Error', error.message || 'Failed to update pet.');
+        },
+      }
+    );
   };
 
   return (
