@@ -59,13 +59,15 @@ export const useUpdateUser = () => {
         .single();
 
       if (error) {
+        console.error('Error updating user:', error);
         throw new Error(error.message);
       }
       return updatedUserData;
     },
     async onSuccess(_, user_id) {
+      console.log('This User updated successfully:', user_id);
       await queryClient.invalidateQueries({ queryKey: ['usersList'] });
-      await queryClient.invalidateQueries({ queryKey: ['userData', user_id] });
+      await queryClient.invalidateQueries({ queryKey: ['userData', user_id.user_id] });
     },
     async onError(error) {
       console.error('Error updating user:', error);

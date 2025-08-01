@@ -8,16 +8,16 @@ import {
   StyleSheet,
   Alert,
   Image,
-  TouchableOpacity,
-  Platform,
+  TouchableOpacity
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { usePetData, useUpdatePet } from '@/api/pets';
+import { usePetData, useUpdatePet, useInsertPet } from '@/api/pets';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
-import { useInsertPet } from '@/api/pets';
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
+import { useUsersList } from '@/api/users';
+import { useAssignedUser } from '@/api/pets_assigned';
 
 export default function EditPetScreen() {
   // State for form fields
@@ -29,6 +29,8 @@ export default function EditPetScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [status, setStatus] = useState<'available' | 'adopted' | 'fostering' | ''>('');
+  const [userId, setUserId] = useState<string>('');
+  const [prevStatus, setPrevStatus] = useState<string>('');
 
   const { petId } = useLocalSearchParams<{ petId: string }>();
   const isUpdating = !!petId;
@@ -38,6 +40,10 @@ export default function EditPetScreen() {
   const { mutate: updatePet } = useUpdatePet();
   const router = useRouter();
 
+  // Users list for fostering
+  const { data: usersList = [] } = useUsersList();
+  // Assigned user for fostering (edit mode)
+  const { data: assignedUser } = useAssignedUser(isUpdating && status === 'fostering' ? petId : '');
   // Populate fields if editing
   useEffect(() => {
     if (isUpdating && updatingPet) {
@@ -48,9 +54,25 @@ export default function EditPetScreen() {
       setBreed(updatingPet.breed || '');
       setGender((updatingPet.gender || '').toLowerCase());
       setStatus((updatingPet.status || '').toLowerCase());
+      setPrevStatus((updatingPet.status || '').toLowerCase());
       // setPhotoUri(updatingPet.profile_photo || null);
     }
   }, [isUpdating, updatingPet]);
+
+  // Set assigned user when editing and status is fostering
+  useEffect(() => {
+    if (isUpdating && status === 'fostering' && assignedUser) {
+      setUserId(assignedUser.user_id);
+    }
+    // If status changed from not fostering to fostering, reset userId
+    if (isUpdating && prevStatus !== 'fostering' && status === 'fostering') {
+      setUserId('');
+    }
+    // If status changed from fostering to something else, reset userId
+    if (isUpdating && prevStatus === 'fostering' && status !== 'fostering') {
+      setUserId('');
+    }
+  }, [isUpdating, status, assignedUser, prevStatus]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -76,6 +98,10 @@ export default function EditPetScreen() {
       Alert.alert('Missing fields', 'Please fill in all fields.');
       return;
     }
+    if (status === 'fostering' && !userId) {
+      Alert.alert('Missing user', 'Please select a user for fostering.');
+      return;
+    }
     insertPet(
       {
         name,
@@ -86,6 +112,7 @@ export default function EditPetScreen() {
         status,
         location,
         profile_photo: photoUri || null,
+        user_id: status === 'fostering' ? userId : null,
       },
       {
         onSuccess: () => {
@@ -102,10 +129,14 @@ export default function EditPetScreen() {
       }
     );
   };
-  // Add this function for updating
+
   const handleUpdatePet = async () => {
     if (!name || !dob || !species || !location || !breed || !gender || !status) {
       Alert.alert('Missing fields', 'Please fill in all fields.');
+      return;
+    }
+    if (status === 'fostering' && !userId) {
+      Alert.alert('Missing user', 'Please select a user for fostering.');
       return;
     }
 
@@ -120,6 +151,7 @@ export default function EditPetScreen() {
         status,
         location,
         profile_photo: photoUri || null,
+        user_id: status === 'fostering' ? userId : null,
       },
       {
         onSuccess: () => {
@@ -137,8 +169,10 @@ export default function EditPetScreen() {
     );
   };
 
+  // Show user picker if status is fostering
+  const showUserPicker = status === 'fostering';
+
   return (
-    
     <KeyboardAvoidingWrapper>
       <Stack.Screen options={{ title: isUpdating ? 'Edit Pet' : 'Create Pet' }} />
       <ScrollView contentContainerStyle={styles.container}>
@@ -200,7 +234,13 @@ export default function EditPetScreen() {
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={status}
-            onValueChange={setStatus}
+            onValueChange={value => {
+              setStatus(value);
+              // If status changes, update prevStatus
+              setPrevStatus(status);
+              // If switching away from fostering, clear userId
+              if (value !== 'fostering') setUserId('');
+            }}
             style={styles.picker}
           >
             <Picker.Item label="Select Status" value="" />
@@ -209,6 +249,24 @@ export default function EditPetScreen() {
             <Picker.Item label="Fostering" value="fostering" />
           </Picker>
         </View>
+
+        {showUserPicker && (
+          <>
+            <Text style={styles.label}>User</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={userId}
+                onValueChange={setUserId}
+                style={styles.picker}
+              >
+                <Picker.Item label="Select User" value="" />
+                {usersList.map((user: any) => (
+                  <Picker.Item key={user.user_id} label={user.email} value={user.user_id} />
+                ))}
+              </Picker>
+            </View>
+          </>
+        )}
 
         <Text style={styles.label}>Location</Text>
         <TextInput

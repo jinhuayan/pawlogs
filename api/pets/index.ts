@@ -112,7 +112,7 @@ export const useUpdatePet = ()=> {
     },
     async onSuccess(_, {pet_id}) {
       await queryClient.invalidateQueries({ queryKey: ['pets'] });
-      await queryClient.invalidateQueries({ queryKey: ['petData', pet_id] });
+      await queryClient.invalidateQueries({ queryKey: ['petData', pet_id.pet_id] });
     },
     async onError(error: any) {
       throw new Error(error.message || 'Failed to update pet.');
