@@ -71,6 +71,10 @@ const EditUser: React.FC = () => {
       updateUserFields.approved = true;
       updateUserFields.approved_by = admin.user_id;
     }
+    if (user.approved === null && active === false) {
+      updateUserFields.approved = false;
+      updateUserFields.approved_by = admin.user_id;
+    }
     
     updateUser(
       {...updateUserFields},
@@ -95,6 +99,7 @@ const EditUser: React.FC = () => {
     setApproved(true);
     const updateUserFields: any = {
       user_id: userId,
+      active: true,
       approved: true,
       approved_by: admin.user_id
     };
