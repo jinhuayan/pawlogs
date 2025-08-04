@@ -154,7 +154,7 @@ const EditUser: React.FC = () => {
     <View style={styles.container}>
       <Text style={styles.header}>Edit User</Text>
       <View>
-        <Text>First Name:</Text>
+        <Text style={styles.label}>First Name:</Text>
         <TextInput
           style={styles.input}
           value={fname}
@@ -162,15 +162,15 @@ const EditUser: React.FC = () => {
         />
       </View>
       <View>
-        <Text>Last Name:</Text>
+        <Text style={styles.label}>Last Name:</Text>
         <TextInput
           style={styles.input}
           value={lname}
           onChangeText={setLname}
         />
       </View>
-      <View>
-        <Text>Email:</Text>
+      <View style={styles.label}>
+        <Text style={styles.label}>Email:</Text>
         <TextInput
           style={styles.input}
           value={email}
@@ -178,7 +178,7 @@ const EditUser: React.FC = () => {
         />
       </View>
       <View>
-        <Text>Role:</Text>
+        <Text style={styles.label}>Role:</Text>
         <View style={{ borderColor: '#9e7ae7', borderWidth: 1, borderRadius: 12, marginBottom: 18, backgroundColor: '#fff', overflow: 'hidden' }}>
           <Picker
             selectedValue={role}
@@ -193,7 +193,7 @@ const EditUser: React.FC = () => {
         </View>
       </View>
       <View>
-        <Text>Status:</Text>
+        <Text style={styles.label}>Status:</Text>
         <View style={{ borderColor: '#9e7ae7', borderWidth: 1, borderRadius: 12, marginBottom: 18, backgroundColor: '#fff', overflow: 'hidden' }}>
           <Picker
             selectedValue={active ? "true" : "false"}
@@ -240,14 +240,14 @@ const EditUser: React.FC = () => {
             <View style={styles.buttonWrapper}>
               <Button
                 title="Approve"
-                color="green"
+                color="#39c05dff"
                 onPress={handleApprove}
               />
             </View>
             <View style={styles.buttonWrapper}>
               <Button
                 title="Decline"
-                color="red"
+                color="#db4040"
                 onPress={handleDecline}
               />
             </View>
@@ -285,6 +285,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: '#7c5fc9',
     textAlign: 'center',
+  },
+  label: {
+    fontWeight: '600',
+    fontSize: 16,
+    marginBottom: 6,
   },
   filterRow: {
     flexDirection: 'row',

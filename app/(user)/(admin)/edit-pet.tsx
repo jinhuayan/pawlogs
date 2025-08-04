@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,8 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 import { useUsersList } from '@/api/users';
-import { useAssignedUser } from '@/api/pets_assigned';
+import { useAssignedUser, useAssignUserToPet, useDeassignUserFromPet } from '@/api/pets_assigned';
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function EditPetScreen() {
   // State for form fields
@@ -30,20 +31,30 @@ export default function EditPetScreen() {
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [status, setStatus] = useState<'available' | 'adopted' | 'fostering' | ''>('');
   const [userId, setUserId] = useState<string>('');
+  const [prevUserId, setPrevUserId] = useState<string>('');
   const [prevStatus, setPrevStatus] = useState<string>('');
+
 
   const { petId } = useLocalSearchParams<{ petId: string }>();
   const isUpdating = !!petId;
 
   const updatingPet = isUpdating ? usePetData(petId).data : null;
+  const { user: admin } = useAuth();
   const { mutate: insertPet } = useInsertPet();
   const { mutate: updatePet } = useUpdatePet();
+  const { mutate: assignPet } = useAssignUserToPet();
+  const { mutate: deassignPet } = useDeassignUserFromPet();
   const router = useRouter();
 
-  // Users list for fostering
-  const { data: usersList = [] } = useUsersList();
+  // Active users list for fostering
+  const { data: usersQuery } = useUsersList();
+  const users = usersQuery || [];
+  const usersList = useMemo(() => {
+    return users.filter(user => user.active && user.approved === true);
+  }, [users]);
   // Assigned user for fostering (edit mode)
   const { data: assignedUser } = useAssignedUser(isUpdating && status === 'fostering' ? petId : '');
+
   // Populate fields if editing
   useEffect(() => {
     if (isUpdating && updatingPet) {
@@ -63,6 +74,7 @@ export default function EditPetScreen() {
   useEffect(() => {
     if (isUpdating && status === 'fostering' && assignedUser) {
       setUserId(assignedUser.user_id);
+      setPrevUserId(assignedUser.user_id);
     }
     // If status changed from not fostering to fostering, reset userId
     if (isUpdating && prevStatus !== 'fostering' && status === 'fostering') {
@@ -102,20 +114,20 @@ export default function EditPetScreen() {
       Alert.alert('Missing user', 'Please select a user for fostering.');
       return;
     }
-    insertPet(
+    const insertedPet = insertPet(
       {
         name,
         dob,
         species,
         breed,
         gender,
-        status,
+        status: 'available', // Default to available
         location,
         profile_photo: photoUri || null,
-        user_id: status === 'fostering' ? userId : null,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          console.log('Pet created successfully:', data);
           router.back()
           Alert.alert('Success', 'Pet created successfully!', [
             {
@@ -128,6 +140,7 @@ export default function EditPetScreen() {
         },
       }
     );
+    console.log('Inserted Pet:', insertedPet);
   };
 
   const handleUpdatePet = async () => {
@@ -155,6 +168,22 @@ export default function EditPetScreen() {
       },
       {
         onSuccess: () => {
+          if (prevStatus === 'fostering' && status !== 'fostering') {
+            // If switching from fostering to another status, deassign user
+            deassignPet({ pet_id: petId, user_id: prevUserId, unassigned_by: admin.user_id, assigned: false, unassigned_at: new Date().toISOString() });
+          } 
+          else if (status === 'fostering') {
+            if (prevStatus !== 'fostering') {
+              // If switching to fostering, assign user
+              assignPet({ pet_id: petId, user_id: userId, assigned_by: admin.user_id, assigned: true, assigned_at: new Date().toISOString() });
+            }
+            else if (prevStatus === 'fostering' && prevUserId !== userId) {
+              // If changing fostering user, deassign previous and assign new
+              deassignPet({ pet_id: petId, user_id: prevUserId, unassigned_by: admin.user_id, assigned: false, unassigned_at: new Date().toISOString() });
+              assignPet({ pet_id: petId, user_id: userId, assigned_by: admin.user_id, assigned: true, assigned_at: new Date().toISOString() });
+            }
+
+          }
           router.back()
           Alert.alert('Success', 'Pet updated!', [
             {
@@ -229,26 +258,29 @@ export default function EditPetScreen() {
             <Picker.Item label="Female" value="female" />
           </Picker>
         </View>
-
-        <Text style={styles.label}>Status</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={status}
-            onValueChange={value => {
-              setStatus(value);
-              // If status changes, update prevStatus
-              setPrevStatus(status);
-              // If switching away from fostering, clear userId
-              if (value !== 'fostering') setUserId('');
-            }}
-            style={styles.picker}
-          >
-            <Picker.Item label="Select Status" value="" />
-            <Picker.Item label="Available" value="available" />
-            <Picker.Item label="Adopted" value="adopted" />
-            <Picker.Item label="Fostering" value="fostering" />
-          </Picker>
-        </View>
+        {isUpdating && (
+          <>
+            <Text style={styles.label}>Status</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={status}
+                onValueChange={value => {
+                  setStatus(value);
+                  // If status changes, update prevStatus
+                  setPrevStatus(status);
+                  // If switching away from fostering, clear userId
+                  if (value !== 'fostering') setUserId('');
+                }}
+                style={styles.picker}
+              >
+                <Picker.Item label="Select Status" value="" />
+                <Picker.Item label="Available" value="available" />
+                <Picker.Item label="Adopted" value="adopted" />
+                <Picker.Item label="Fostering" value="fostering" />
+              </Picker>
+            </View>
+          </>
+        )}
 
         {showUserPicker && (
           <>
@@ -350,7 +382,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   picker: {
-    height: 48,
+    height: 50,
     width: '100%',
   },
   buttonWrapper: {

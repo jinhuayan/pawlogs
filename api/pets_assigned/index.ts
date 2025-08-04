@@ -50,6 +50,7 @@ export const useAssignUserToPet = () => {
   const queryClient = useQueryClient();
   return useMutation({
     async mutationFn(assignData: any){
+      console.log('Assigning user to pet with data:', assignData);
       const { data: assignedData, error } = await supabase
         .from('pet_assignments')
         .insert(assignData)
@@ -58,7 +59,6 @@ export const useAssignUserToPet = () => {
       if (error) {
         throw new Error(error.message);
       }
-      console.log('Assigned User to Pet:', assignedData);
       return assignedData;
     },
     async onSuccess (_, { assignData }) {
@@ -67,6 +67,33 @@ export const useAssignUserToPet = () => {
     },
     async onError (error: any) {
       throw new Error(error.message || 'Failed to assign user to pet.');
+    }
+  });
+}
+
+export const useDeassignUserFromPet = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    async mutationFn(deassignData: any){
+      console.log('Deassigning user from pet with data:', deassignData);
+      const { data: deassignedData, error } = await supabase
+        .from('pet_assignments')
+        .update(deassignData)
+        .eq('user_id', deassignData.user_id)
+        .eq('pet_id', deassignData.pet_id)
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      return deassignedData;
+    },
+    async onSuccess (_, { deassignData }) {
+      await queryClient.invalidateQueries({ queryKey: ['assignedPets', deassignData.user_id] });
+      await queryClient.invalidateQueries({ queryKey: ['assignedUser', deassignData.pet_id] });
+    },
+    async onError (error: any) {
+      throw new Error(error.message || 'Failed to deassign user to pet.');
     }
   });
 }

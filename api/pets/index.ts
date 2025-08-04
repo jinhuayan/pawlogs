@@ -72,6 +72,7 @@ export const useInsertPet = ()=> {
         console.log('Error inserting pet:', error.message);
         throw new Error(error.message);
       }
+      console.log('FROM API New pet inserted successfully:', newPetData);
       return newPetData;
     },
     async onSuccess() {
@@ -110,9 +111,9 @@ export const useUpdatePet = ()=> {
       }
       return updatedPetData;
     },
-    async onSuccess(_, {pet_id}) {
+    async onSuccess(_, updatePet) {
       await queryClient.invalidateQueries({ queryKey: ['pets'] });
-      await queryClient.invalidateQueries({ queryKey: ['petData', pet_id.pet_id] });
+      await queryClient.invalidateQueries({ queryKey: ['petData', updatePet.pet_id] });
     },
     async onError(error: any) {
       throw new Error(error.message || 'Failed to update pet.');

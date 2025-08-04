@@ -13,17 +13,14 @@ const ManagePets: React.FC = () => {
   const speciesOptions = useMemo(() => [
     ...Array.from(new Set(pets.map((pet: any) => (pet.species).toLowerCase()).filter(Boolean))),
   ], [pets]);
-  console.log('Species Options:', speciesOptions);
   const statusOptions = useMemo(() => [
     ...Array.from(new Set(pets.map((pet: any) => (pet.status).toLowerCase()).filter(Boolean))),
   ], [pets]);
-  console.log('Status Options:', statusOptions);
 
   const filters = [
     { label: 'Status', key: 'status', options: ['All', ...statusOptions] },
     { label: 'Species', key: 'species', options: ['All', ...speciesOptions] },
   ];
-  console.log('Filters:', filters);
   // Filter state
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filterValues, setFilterValues] = useState({
