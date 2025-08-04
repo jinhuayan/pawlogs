@@ -51,19 +51,19 @@ export default function UserLayout() {
 
         <Stack.Screen
           name="admin-home"
-          options={{ title: 'Admin Home', headerBackVisible: false }}
+          options={{ title: 'Admin Home', headerBackVisible: false, headerTitleAlign: 'center' }}
         />
         <Stack.Screen
           name="manage-pets"
-          options={{ title: 'Manage Pets' }}
+          options={{ title: 'Manage Pets', headerTitleAlign: 'center' }}
         />
         <Stack.Screen
           name="manage-users"
-          options={{ title: 'Manage Users' }}
+          options={{ title: 'Manage Users', headerTitleAlign: 'center' }}
         />
         <Stack.Screen
           name="edit-user"
-          options={{ title: 'Edit User' }}
+          options={{ title: 'Edit User', headerTitleAlign: 'center' }}
         />
       </Stack>
       <MyProfileModal visible={showProfile} onClose={() => setShowProfile(false)} />

@@ -1,96 +1,125 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, ActivityIndicator, View, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { usePetsList } from '@/api/pets';
 import PetsViewList from '@/components/PetsViewList';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-
-const statusOptions = ['available', 'adopted', 'fostering'];
 
 const ManagePets: React.FC = () => {
   const { data: petsQuery, isLoading, error } = usePetsList();
   const pets = petsQuery || [];
 
-  // Get unique species from pets data
-  const speciesSet = new Set<string>();
-  pets.forEach(pet => {
-    if (pet.species) speciesSet.add((pet.species).toLowerCase());
-  });
-  const speciesOptions = ['All', ...Array.from(speciesSet)];
+  // Dynamically get unique species and status options from pets data
+  const speciesOptions = useMemo(() => [
+    ...Array.from(new Set(pets.map((pet: any) => (pet.species).toLowerCase()).filter(Boolean))),
+  ], [pets]);
+  console.log('Species Options:', speciesOptions);
+  const statusOptions = useMemo(() => [
+    ...Array.from(new Set(pets.map((pet: any) => (pet.status).toLowerCase()).filter(Boolean))),
+  ], [pets]);
+  console.log('Status Options:', statusOptions);
 
-  // Filter state
-  const FILTERS = [
-    { key: 'species', label: 'Species', options: speciesOptions },
-    { key: 'status', label: 'Status', options: statusOptions },
+  const filters = [
+    { label: 'Status', key: 'status', options: ['All', ...statusOptions] },
+    { label: 'Species', key: 'species', options: ['All', ...speciesOptions] },
   ];
-  const [filterValues, setFilterValues] = useState({
-    species: 'All',
-    status: 'available',
-  });
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  console.log('Filters:', filters);
+  // Filter state
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-
-  // Filtering logic
-  const filteredPets = pets.filter(pet => {
-    const speciesMatch = filterValues.species === 'All' || (pet.species).toLowerCase() === filterValues.species;
-    const statusMatch = pet.status.toLowerCase() === filterValues.status;
-    return speciesMatch && statusMatch;
+  const [filterValues, setFilterValues] = useState({
+    status: 'All',
+    species: 'All'
   });
+
+  // Filter pets based on selected species and status
+  const filteredPets = useMemo(() => {
+    return pets.filter((pet: any) => {
+      const speciesMatch = filterValues.species === 'All' || pet.species.toLowerCase() === filterValues.species;
+      const statusMatch = filterValues.status === 'All' || pet.status.toLowerCase() === filterValues.status;
+      return speciesMatch && statusMatch;
+    });
+  }, [pets, filterValues]);
+
+  // Helper to show selected filters as chips
+  const activeFilters = filters.map(f =>
+    filterValues[f.key as keyof typeof filterValues] !== 'All' && {
+      label: `${f.label}: ${filterValues[f.key as keyof typeof filterValues]}`,
+      onClear: () => setFilterValues(prev => ({ ...prev, [f.key]: 'All' })),
+    }
+  ).filter(Boolean);
 
   if (isLoading) return <ActivityIndicator />;
   if (error) return <Text>Failed to fetch Pets</Text>;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>All Pets</Text>
-      {/* Filters */}
-      <View style={styles.filterRow}>
-        {FILTERS.map(f => (
-          <TouchableOpacity
-            key={f.key}
-            style={styles.filterButton}
-            onPress={() => {
-              setSelectedFilter(f.key);
-              setFilterModalVisible(true);
-            }}
-          >
-            <Text style={styles.filterText}>
-              {f.label}: {filterValues[f.key as keyof typeof filterValues]}
-            </Text>
-          </TouchableOpacity>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text style={styles.header}>All Pets</Text>
+        {/* Filter Button */}
+        <TouchableOpacity style={styles.filterButton} onPress={() => setFilterModalVisible(true)}>
+          <Ionicons name="filter" size={18} color="#fff" />
+          <Text style={styles.filterButtonText}>Filter</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Selected Filters as Chips */}
+      <View style={styles.chipContainer}>
+        {activeFilters.length === 0 && (
+          <Text style={styles.noFilterText}>No filters applied</Text>
+        )}
+        {activeFilters.map((filter: any) => (
+          <View key={filter.label} style={styles.chip}>
+            <Text style={styles.chipText}>{filter.label}</Text>
+            <TouchableOpacity onPress={filter.onClear}>
+              <Ionicons name="close-circle" size={16} color="#7c5fc9" style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
+          </View>
         ))}
       </View>
+
+      {/* Filter Modal */}
       <Modal
         visible={filterModalVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setFilterModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>
-              Select {FILTERS.find(f => f.key === selectedFilter)?.label}
-            </Text>
-            {selectedFilter &&
-              FILTERS.find(f => f.key === selectedFilter)?.options.map(option => (
-                <TouchableOpacity
-                  key={option}
-                  style={styles.optionButton}
-                  onPress={() => {
-                    setFilterValues(prev => ({
-                      ...prev,
-                      [selectedFilter]: option,
-                    }));
-                    setFilterModalVisible(false);
-                  }}
-                >
-                  <Text style={styles.optionText}>{option}</Text>
-                </TouchableOpacity>
-              ))}
+            {filters.map(f => (
+              <View key={f.key} style={{ marginBottom: 12 }}>
+                <Text style={styles.modalLabel}>{f.label}</Text>
+                {f.options.map(option => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[
+                      styles.optionButton,
+                      filterValues[f.key as keyof typeof filterValues] === option && styles.optionButtonActive,
+                    ]}
+                    onPress={() => setFilterValues(prev => ({ ...prev, [f.key]: option }))}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        filterValues[f.key as keyof typeof filterValues] === option && styles.optionTextActive,
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ))}
             <TouchableOpacity
-              style={styles.closeButton}
+              style={styles.applyButton}
               onPress={() => setFilterModalVisible(false)}
             >
-              <Text style={styles.closeText}>Close</Text>
+              <Text style={styles.applyButtonText}>Apply</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setFilterModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -129,65 +158,139 @@ const styles = StyleSheet.create({
     color: '#7c5fc9',
     textAlign: 'center',
   },
-  filterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-  },
   filterButton: {
-    backgroundColor: '#e5d9fa',
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    backgroundColor: '#7c5fc9',
     paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    marginBottom: 8,
+    shadowColor: '#7c5fc9',
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
   },
-  filterText: {
+  filterButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 10,
+    minHeight: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e6d6fa',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginRight: 6,
+    marginBottom: 4,
+  },
+  chipText: {
     color: '#7c5fc9',
     fontWeight: 'bold',
+    fontSize: 14,
+  },
+  noFilterText: {
+    color: '#aaa',
+    fontSize: 14,
+    fontStyle: 'italic',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.18)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
+    width: '85%',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 24,
-    width: 280,
-    alignItems: 'center',
+    alignItems: 'stretch',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 8,
   },
-  modalHeader: {
-    fontSize: 18,
+  modalTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#7c5fc9',
-    marginBottom: 16,
+    marginBottom: 18,
+    textAlign: 'center',
   },
-  optionButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    backgroundColor: '#e6ddfa',
-    marginBottom: 8,
-    width: '100%',
-    alignItems: 'center',
-  },
-  optionText: {
+  modalLabel: {
+    fontSize: 15,
     color: '#7c5fc9',
+    fontWeight: 'bold',
+    marginTop: 8,
+    marginBottom: 2,
+  },
+  modalPicker: {
+    backgroundColor: '#f6f0fa',
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e6d6fa',
+    overflow: 'hidden',
+  },
+  applyButton: {
+    backgroundColor: '#7c5fc9',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  applyButtonText: {
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
-  closeButton: {
-    marginTop: 12,
-    padding: 8,
+  optionButton: {
+    backgroundColor: '#f6f0fa',
     borderRadius: 8,
-    backgroundColor: '#7c5fc9',
-    width: '100%',
-    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#e6d6fa',
   },
-  closeText: {
-    color: '#fff',
+  optionButtonActive: {
+    backgroundColor: '#7c5fc9',
+    borderColor: '#7c5fc9',
+  },
+  optionText: {
+    color: '#7c5fc9',
+    fontSize: 16,
     fontWeight: 'bold',
+  },
+  optionTextActive: {
+    color: '#fff',
+  },
+  cancelButton: {
+    backgroundColor: '#eee',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  cancelButtonText: {
+    color: '#7c5fc9',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
   createButton: {
     backgroundColor: '#7c5fc9',
@@ -199,7 +302,7 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 15,
   },
 });
 

@@ -13,116 +13,120 @@ const PetsScreen: React.FC = () => {
 
   // Dynamically get unique species and status options from pets data
   const speciesOptions = useMemo(() => [
-    'All',
-    ...Array.from(new Set(pets.map((pet: any) => pet.species).filter(Boolean))),
+    ...Array.from(new Set(pets.map((pet: any) => (pet.species).toLowerCase()).filter(Boolean))),
   ], [pets]);
+  console.log('Species Options:', speciesOptions);
   const statusOptions = useMemo(() => [
-    'All',
-    ...Array.from(new Set(pets.map((pet: any) => pet.status).filter(Boolean))),
+    ...Array.from(new Set(pets.map((pet: any) => (pet.status).toLowerCase()).filter(Boolean))),
   ], [pets]);
+  console.log('Status Options:', statusOptions);
 
-  const [selectedSpecies, setSelectedSpecies] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
-  const [filterVisible, setFilterVisible] = useState(false);
+  const filters = [
+    { label: 'Status', key: 'status', options: ['All', ...statusOptions] },
+    { label: 'Species', key: 'species', options: ['All', ...speciesOptions] },
+  ];
+  console.log('Filters:', filters);
+  // Filter state
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [filterValues, setFilterValues] = useState({
+    status: 'All',
+    species: 'All'
+  });
 
   // Filter pets based on selected species and status
   const filteredPets = useMemo(() => {
     return pets.filter((pet: any) => {
-      const speciesMatch = selectedSpecies === 'All' || pet.species === selectedSpecies;
-      const statusMatch = selectedStatus === 'All' || pet.status === selectedStatus;
+      const speciesMatch = filterValues.species === 'All' || pet.species.toLowerCase() === filterValues.species;
+      const statusMatch = filterValues.status === 'All' || pet.status.toLowerCase() === filterValues.status;
       return speciesMatch && statusMatch;
     });
-  }, [pets, selectedSpecies, selectedStatus]);
-
-  if (isLoading) {
-    return <ActivityIndicator />;
-  }
-  if (error) {
-    return <Text>Failed to fetch Pets</Text>;
-  }
+  }, [pets, filterValues]);
 
   // Helper to show selected filters as chips
-  const activeFilters = [
-    selectedSpecies !== 'All' && { label: selectedSpecies, onClear: () => setSelectedSpecies('All') },
-    selectedStatus !== 'All' && { label: selectedStatus, onClear: () => setSelectedStatus('All') },
-  ].filter(Boolean);
+  const activeFilters = filters.map(f =>
+    filterValues[f.key as keyof typeof filterValues] !== 'All' && {
+      label: `${f.label}: ${filterValues[f.key as keyof typeof filterValues]}`,
+      onClear: () => setFilterValues(prev => ({ ...prev, [f.key]: 'All' })),
+    }
+  ).filter(Boolean);
+
+  if (isLoading) return <ActivityIndicator />;
+  if (error) return <Text>Failed to fetch Pets</Text>;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>
-        {isAdmin === false ? 'My Assigned Pets' : 'All Pets'}
-      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Text style={styles.header}>My Pets</Text>
 
       {/* Filter Button */}
-      <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
+      <TouchableOpacity style={styles.filterButton} onPress={() => setFilterModalVisible(true)}>
         <Ionicons name="filter" size={18} color="#fff" />
         <Text style={styles.filterButtonText}>Filter</Text>
       </TouchableOpacity>
-
-      {/* Selected Filters as Chips */}
-      <View style={styles.chipContainer}>
-        {activeFilters.length === 0 && (
-          <Text style={styles.noFilterText}>No filters applied</Text>
-        )}
-        {activeFilters.map((filter: any, idx) => (
-          <View key={filter.label} style={styles.chip}>
-            <Text style={styles.chipText}>{filter.label}</Text>
-            <TouchableOpacity onPress={filter.onClear}>
-              <Ionicons name="close-circle" size={16} color="#7c5fc9" style={{ marginLeft: 4 }} />
-            </TouchableOpacity>
-          </View>
-        ))}
       </View>
-
-      {/* Filter Modal */}
-      <Modal
-        visible={filterVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setFilterVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filter Pets</Text>
-            <Text style={styles.modalLabel}>Species</Text>
-            <View style={styles.modalPicker}>
-              <Picker
-                selectedValue={selectedSpecies}
-                onValueChange={setSelectedSpecies}
-                dropdownIconColor="#7c5fc9"
-              >
-                {speciesOptions.map(opt => (
-                  <Picker.Item label={opt} value={opt} key={opt} />
-                ))}
-              </Picker>
+      {/* Selected Filters as Chips */}
+            <View style={styles.chipContainer}>
+              {activeFilters.length === 0 && (
+                <Text style={styles.noFilterText}>No filters applied</Text>
+              )}
+              {activeFilters.map((filter: any) => (
+                <View key={filter.label} style={styles.chip}>
+                  <Text style={styles.chipText}>{filter.label}</Text>
+                  <TouchableOpacity onPress={filter.onClear}>
+                    <Ionicons name="close-circle" size={16} color="#7c5fc9" style={{ marginLeft: 4 }} />
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
-            <Text style={styles.modalLabel}>Status</Text>
-            <View style={styles.modalPicker}>
-              <Picker
-                selectedValue={selectedStatus}
-                onValueChange={setSelectedStatus}
-                dropdownIconColor="#7c5fc9"
-              >
-                {statusOptions.map(opt => (
-                  <Picker.Item label={opt} value={opt} key={opt} />
-                ))}
-              </Picker>
-            </View>
-            <TouchableOpacity
-              style={styles.applyButton}
-              onPress={() => setFilterVisible(false)}
+      
+            {/* Filter Modal */}
+            <Modal
+              visible={filterModalVisible}
+              transparent
+              animationType="slide"
+              onRequestClose={() => setFilterModalVisible(false)}
             >
-              <Text style={styles.applyButtonText}>Apply</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setFilterVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  {filters.map(f => (
+                    <View key={f.key} style={{ marginBottom: 12 }}>
+                      <Text style={styles.modalLabel}>{f.label}</Text>
+                      {f.options.map(option => (
+                        <TouchableOpacity
+                          key={option}
+                          style={[
+                            styles.optionButton,
+                            filterValues[f.key as keyof typeof filterValues] === option && styles.optionButtonActive,
+                          ]}
+                          onPress={() => setFilterValues(prev => ({ ...prev, [f.key]: option }))}
+                        >
+                          <Text
+                            style={[
+                              styles.optionText,
+                              filterValues[f.key as keyof typeof filterValues] === option && styles.optionTextActive,
+                            ]}
+                          >
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ))}
+                  <TouchableOpacity
+                    style={styles.applyButton}
+                    onPress={() => setFilterModalVisible(false)}
+                  >
+                    <Text style={styles.applyButtonText}>Apply</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setFilterModalVisible(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
 
       {filteredPets && filteredPets.length > 0 && (
         <FlatList
@@ -250,6 +254,27 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  optionButton: {
+    backgroundColor: '#f6f0fa',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#e6d6fa',
+  },
+  optionButtonActive: {
+    backgroundColor: '#7c5fc9',
+    borderColor: '#7c5fc9',
+  },
+  optionText: {
+    color: '#7c5fc9',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  optionTextActive: {
+    color: '#fff',
   },
   cancelButton: {
     backgroundColor: '#eee',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, View, Text, StyleSheet, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUsersList } from '@/api/users';
@@ -16,41 +16,30 @@ const ManageUsers: React.FC = () => {
 
   // Filter state
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [filterValues, setFilterValues] = useState({
     status: 'Active',
     role: 'All',
     approval: 'Approved',
   });
-
   // Filtering logic
-  const filteredUsers = users.filter(user => {
-    // Status filter
-    if (
-      filterValues.status === 'Active' && !user.active ||
-      filterValues.status === 'Inactive' && user.active
-    ) return false;
-
-    // Role filter
-    if (
-      filterValues.role === 'Admin' && user.role !== 'admin' ||
-      filterValues.role === 'Foster' && user.role !== 'foster'
-    ) return false;
-
-    // Approval filter
-    if (
-      filterValues.approval === 'Approved' && user.approved !== true ||
-      filterValues.approval === 'Declined' && user.approved !== false ||
-      filterValues.approval === 'Pending' && user.approved !== null
-    ) return false;
-
-    return true;
-  });
+  const filteredUsers = useMemo(() => {
+    return users.filter((user: any) => {
+      const statusMatch = filterValues.status === 'All' || 
+      (filterValues.status === 'Active' && user.active) ||
+      (filterValues.status === 'Inactive' && !user.active);
+      const roleMatch = filterValues.role === 'All' || (user.role).toLowerCase() === (filterValues.role).toLowerCase();
+      const approvalMatch = filterValues.approval === 'All' ||
+        (filterValues.approval === 'Approved' && user.approved === true) ||
+        (filterValues.approval === 'Declined' && user.approved === false) ||
+        (filterValues.approval === 'Pending' && user.approved === null);
+      return statusMatch && roleMatch && approvalMatch;
+    });
+  }, [users, filterValues]);
 
   // Helper to show selected filters as chips
   const activeFilters = FILTERS.map(f =>
-    filterValues[f.key] !== 'All' && {
-      label: `${f.label}: ${filterValues[f.key]}`,
+    filterValues[f.key as keyof typeof filterValues] !== 'All' && {
+      label: `${f.label}: ${filterValues[f.key as keyof typeof filterValues]}`,
       onClear: () => setFilterValues(prev => ({ ...prev, [f.key]: 'All' })),
     }
   ).filter(Boolean);
@@ -64,13 +53,16 @@ const ManageUsers: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>All Users</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 
-      {/* Filter Button */}
-      <TouchableOpacity style={styles.filterButton} onPress={() => setFilterModalVisible(true)}>
-        <Ionicons name="filter" size={18} color="#fff" />
-        <Text style={styles.filterButtonText}>Filter</Text>
-      </TouchableOpacity>
+        <Text style={styles.header}>All Users</Text>
+
+        {/* Filter Button */}
+        <TouchableOpacity style={styles.filterButton} onPress={() => setFilterModalVisible(true)}>
+          <Ionicons name="filter" size={18} color="#fff" />
+          <Text style={styles.filterButtonText}>Filter</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Selected Filters as Chips */}
       <View style={styles.chipContainer}>
@@ -96,7 +88,6 @@ const ManageUsers: React.FC = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filter Users</Text>
             {FILTERS.map(f => (
               <View key={f.key} style={{ marginBottom: 12 }}>
                 <Text style={styles.modalLabel}>{f.label}</Text>
@@ -105,14 +96,14 @@ const ManageUsers: React.FC = () => {
                     key={option}
                     style={[
                       styles.optionButton,
-                      filterValues[f.key] === option && styles.optionButtonActive,
+                      filterValues[f.key as keyof typeof filterValues] === option && styles.optionButtonActive,
                     ]}
                     onPress={() => setFilterValues(prev => ({ ...prev, [f.key]: option }))}
                   >
                     <Text
                       style={[
                         styles.optionText,
-                        filterValues[f.key] === option && styles.optionTextActive,
+                        filterValues[f.key as keyof typeof filterValues] === option && styles.optionTextActive,
                       ]}
                     >
                       {option}

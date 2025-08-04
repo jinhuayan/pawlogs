@@ -174,7 +174,7 @@ export default function EditPetScreen() {
 
   return (
     <KeyboardAvoidingWrapper>
-      <Stack.Screen options={{ title: isUpdating ? 'Edit Pet' : 'Create Pet' }} />
+      <Stack.Screen options={{ title: isUpdating ? 'Edit Pet' : 'Create Pet', headerTitleAlign: 'center' }} />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.header}>{isUpdating ? 'Edit Pet Profile' : 'Create Pet Profile'}</Text>
 

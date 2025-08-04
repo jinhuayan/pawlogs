@@ -10,11 +10,11 @@ export default function AuthLayout() {
   return <Stack>
     <Stack.Screen
       name="login"
-      options={{ title: 'Login', headerBackVisible: false }}
+      options={{ title: 'Login', headerBackVisible: false, headerTitleAlign: 'center' }}
     />
     <Stack.Screen
       name="register"
-      options={{ title: 'Register' }}
+      options={{ title: 'Register', headerTitleAlign: 'center' }}
     />
   </Stack>;
 }

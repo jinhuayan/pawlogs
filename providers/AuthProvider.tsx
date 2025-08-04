@@ -53,9 +53,11 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         return;
       }
       setSession(session);
+      console.log('User data fetched:', data);
       setUser(data || null);
 
     } else {
+      console.log('No session found, clearing user data');
       setUser(null);
     }
   };
@@ -78,8 +80,10 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         console.log('Auth state changed:', _event);
         setLoading(true);
         await fetchUser(session);
+        console.log('Loading state set to false after fetching user');
         setLoading(false);
         if (!session) {
+          console.log('No Session found');
         queryClient.clear(); // Clear cache on logout
       }
       }

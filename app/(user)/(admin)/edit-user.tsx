@@ -275,9 +275,9 @@ const EditUser: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: 16,
     backgroundColor: '#fdf6ff',
-    flexGrow: 1,
+    flex: 1,
   },
   header: {
     fontSize: 28,
