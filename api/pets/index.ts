@@ -140,7 +140,8 @@ export const useUpdatePet = () => {
           status: updatePet.status,
           dob: updatePet.dob,
           location: updatePet.location,
-          emoji: emoji
+          emoji: emoji,
+          profile_photo: updatePet.profile_photo
         })
         .eq('pet_id', updatePet.pet_id)
         .select()

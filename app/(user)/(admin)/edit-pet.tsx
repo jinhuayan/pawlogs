@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  Image,
-  TouchableOpacity
-} from 'react-native';
+import { View, Text, TextInput, Button, ScrollView, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { usePetData, useUpdatePet, useInsertPet } from '@/api/pets';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -19,6 +9,11 @@ import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 import { useUsersList } from '@/api/users';
 import { useAssignedUser, useAssignUserToPet, useDeassignUserFromPet } from '@/api/pets_assigned';
 import { useAuth } from '@/providers/AuthProvider';
+import * as FileSystem from 'expo-file-system';
+import { randomUUID } from 'expo-crypto';
+import { supabase } from '@/lib/supabase';
+import { decode } from 'base64-arraybuffer';
+import RemoteImage from '@/components/RemoteImage';
 
 export default function EditPetScreen() {
   // State for form fields
@@ -28,6 +23,7 @@ export default function EditPetScreen() {
   const [location, setLocation] = useState('');
   const [breed, setBreed] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [prevPhotoUri, setPrevPhotoUri] = useState<string | null>(null);
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [status, setStatus] = useState<'available' | 'adopted' | 'fostering' | ''>('');
   const [userId, setUserId] = useState<string>('');
@@ -66,7 +62,8 @@ export default function EditPetScreen() {
       setGender((updatingPet.gender || '').toLowerCase());
       setStatus((updatingPet.status || '').toLowerCase());
       setPrevStatus((updatingPet.status || '').toLowerCase());
-      // setPhotoUri(updatingPet.profile_photo || null);
+      setPhotoUri(updatingPet.profile_photo || null);
+      setPrevPhotoUri(updatingPet.profile_photo || null);
     }
   }, [isUpdating, updatingPet]);
 
@@ -95,13 +92,37 @@ export default function EditPetScreen() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
+      quality: 1,
       allowsEditing: true,
-      aspect: [4, 3],
     });
 
     if (!result.canceled) {
       setPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (photoUri === prevPhotoUri) {
+      return prevPhotoUri;
+    }
+    if (!photoUri?.startsWith('file://')) {
+      return;
+    }
+
+    const base64 = await FileSystem.readAsStringAsync(photoUri, {
+      encoding: 'base64',
+    });
+    const filePath = `${randomUUID()}.png`;
+    const contentType = 'image/png';
+
+    const { data, error } = await supabase.storage
+      .from('pet-images')
+      .upload(filePath, decode(base64), { contentType });
+
+    console.log(error);
+
+    if (data) {
+      return data.path;
     }
   };
 
@@ -114,6 +135,9 @@ export default function EditPetScreen() {
       Alert.alert('Missing user', 'Please select a user for fostering.');
       return;
     }
+    // Upload image if selected
+    const photoPath = await uploadImage();
+
     const insertedPet = insertPet(
       {
         name,
@@ -123,7 +147,7 @@ export default function EditPetScreen() {
         gender,
         status: 'available', // Default to available
         location,
-        profile_photo: photoUri || null,
+        profile_photo: photoPath || null,
       },
       {
         onSuccess: (data) => {
@@ -152,7 +176,9 @@ export default function EditPetScreen() {
       Alert.alert('Missing user', 'Please select a user for fostering.');
       return;
     }
-
+    // Upload image if selected
+    const photoPath = await uploadImage();
+    console.log('Photo Path:', photoPath);
     updatePet(
       {
         pet_id: petId,
@@ -163,7 +189,7 @@ export default function EditPetScreen() {
         gender,
         status,
         location,
-        profile_photo: photoUri || null,
+        profile_photo: photoPath || null,
         user_id: status === 'fostering' ? userId : null,
       },
       {
@@ -171,7 +197,7 @@ export default function EditPetScreen() {
           if (prevStatus === 'fostering' && status !== 'fostering') {
             // If switching from fostering to another status, deassign user
             deassignPet({ pet_id: petId, user_id: prevUserId, unassigned_by: admin.user_id, assigned: false, unassigned_at: new Date().toISOString() });
-          } 
+          }
           else if (status === 'fostering') {
             if (prevStatus !== 'fostering') {
               // If switching to fostering, assign user
@@ -209,12 +235,19 @@ export default function EditPetScreen() {
 
         <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
           {photoUri ? (
-            <Image source={{ uri: photoUri }} style={styles.photo} />
+            <RemoteImage
+              path={photoUri}
+              prevPath={prevPhotoUri}
+              storage="pet-images"
+              style={styles.photo}
+              resizeMode="contain"
+            />
           ) : (
             <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderText}>Tap to upload image</Text>
+              <Text style={styles.photoPlaceholderText}>Tap to select photo</Text>
             </View>
           )}
+
         </TouchableOpacity>
         <Text style={styles.label}>Pet Name</Text>
         <TextInput
@@ -335,25 +368,27 @@ const styles = StyleSheet.create({
   },
   imageBox: {
     height: 140,
-    borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
-    backgroundColor: '#f0eefc',
     marginBottom: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden', // 🔹 ensures no visual crop if borderRadius is used
   },
   photo: {
-    width: '100%', 
-    height: 140, 
-    borderRadius: 10
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain', // optional if you set it directly in <Image />
   },
   photoPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
+    height: '100%',
+    width: '100%',
   },
+
   photoPlaceholderText: {
-    textAlign: 'center', 
+    textAlign: 'center',
     color: '#aaa'
   },
   input: {

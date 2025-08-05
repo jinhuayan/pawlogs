@@ -18,6 +18,11 @@ import { usePetActivity, useInsertActivity, useUpdateActivity, useDeleteActivity
 import { useCategories } from '@/api/categories';
 import { useAuth } from '@/providers/AuthProvider';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { randomUUID } from 'expo-crypto';
+import { supabase } from '@/lib/supabase';
+import { decode } from 'base64-arraybuffer';
+import RemoteImage from '@/components/RemoteImage';
 
 const EditLogScreen: React.FC = () => {
   const router = useRouter();
@@ -46,6 +51,7 @@ const EditLogScreen: React.FC = () => {
   const [category2, setCategory2] = useState('');
   const [comment, setComment] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [prevPhotoUri, setPrevPhotoUri] = useState<string | null>(null);
 
   useEffect(() => {
     if (isUpdating && activityData) {
@@ -54,6 +60,7 @@ const EditLogScreen: React.FC = () => {
       setCategory2(activityData.category_2_id);
       setComment(activityData.comment || '');
       setPhotoUri(activityData.image || null);
+      setPrevPhotoUri(activityData.image || null);
     }
   }, [activityData]);
 
@@ -82,27 +89,53 @@ const EditLogScreen: React.FC = () => {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
-      allowsEditing: true,
-      aspect: [4, 3],
+      quality: 1,
+      allowsEditing: true
     });
     if (!result.canceled) {
       setPhotoUri(result.assets[0].uri);
     }
   };
 
-  const handleSave = () => {
+  const uploadImage = async () => {
+    if (photoUri === prevPhotoUri) {
+      return prevPhotoUri;
+    }
+    if (!photoUri?.startsWith('file://')) {
+      return;
+    }
+
+    const base64 = await FileSystem.readAsStringAsync(photoUri, {
+      encoding: 'base64',
+    });
+    const filePath = `${randomUUID()}.png`;
+    const contentType = 'image/png';
+
+    const { data, error } = await supabase.storage
+      .from('activity-images')
+      .upload(filePath, decode(base64), { contentType });
+
+    console.log(error);
+
+    if (data) {
+      return data.path;
+    }
+  };
+
+  const handleSave = async () => {
     if (!category1 || !category2) {
       Alert.alert('Missing Category', 'Please select both primary and sub category.');
       return;
     }
+    // Upload image if selected
+    const photoPath = await uploadImage();
     const log = {
       pet_id: petId,
       event_time: logDate.toISOString(),
       category_1_id: category1,
       category_2_id: category2,
       comment,
-      image: photoUri,
+      image: photoPath || null,
     };
     if (isUpdating && activityData) {
       updateLog(
@@ -148,7 +181,7 @@ const EditLogScreen: React.FC = () => {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     Alert.alert('Delete Log', 'Are you sure you want to delete this log?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -190,10 +223,19 @@ const EditLogScreen: React.FC = () => {
           <Text style={styles.label}>🖼 Photo</Text>
           <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
             {photoUri ? (
-              <Image source={{ uri: photoUri }} style={{ width: '100%', height: 140, borderRadius: 10 }} />
+              <RemoteImage
+                path={photoUri}
+                prevPath={prevPhotoUri}
+                storage="activity-images"
+                style={styles.photo}
+                resizeMode="contain"
+              />
             ) : (
-              <Text style={{ textAlign: 'center', color: '#aaa' }}>Tap to upload image</Text>
+              <View style={styles.photoPlaceholder}>
+                <Text style={styles.photoPlaceholderText}>Tap to select photo</Text>
+              </View>
             )}
+
           </TouchableOpacity>
 
           <Text style={styles.label}>📅 Date & Time</Text>
@@ -295,13 +337,28 @@ const styles = StyleSheet.create({
   changeTimeText: { color: '#5a3db4', fontWeight: 'bold' },
   imageBox: {
     height: 140,
-    borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
-    backgroundColor: '#f0eefc',
     marginBottom: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden', // 🔹 ensures no visual crop if borderRadius is used
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain', // optional if you set it directly in <Image />
+  },
+  photoPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    width: '100%',
+  },
+
+  photoPlaceholderText: {
+    textAlign: 'center',
+    color: '#aaa'
   },
   saveButton: {
     backgroundColor: '#7c5fc9', paddingVertical: 18, borderRadius: 40,
@@ -314,24 +371,24 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: { color: '#e53935', fontWeight: 'bold', fontSize: 16 },
   loadingOverlay: {
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: 'rgba(0,0,0,0.4)',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 999,
-},
-loadingText: {
-  backgroundColor: '#fff',
-  padding: 20,
-  borderRadius: 12,
-  fontSize: 18,
-  fontWeight: 'bold',
-  color: '#7c5fc9',
-},
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  loadingText: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#7c5fc9',
+  },
 
 });
 
