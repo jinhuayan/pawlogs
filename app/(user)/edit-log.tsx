@@ -29,6 +29,7 @@ const EditLogScreen: React.FC = () => {
 
   const isUpdating = !!activityId;
   const isAdding = !!petId && !!date;
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: activityData } = usePetActivity(activityId || '');
   const { data: categoryData } = useCategories();
@@ -112,7 +113,14 @@ const EditLogScreen: React.FC = () => {
           updated_at: new Date().toISOString(),
         },
         {
-          onSuccess: () => router.back(),
+          onSuccess: () => {
+            router.back()
+            Alert.alert('Success', 'Activity updated!', [
+              {
+                text: 'OK'
+              },
+            ]);
+          },
           onError: (err: any) => Alert.alert('Error', err.message || 'Failed to update log'),
         }
       );
@@ -126,7 +134,14 @@ const EditLogScreen: React.FC = () => {
           updated_at: new Date().toISOString(),
         },
         {
-          onSuccess: () => router.back(),
+          onSuccess: () => {
+            router.back()
+            Alert.alert('Success', 'Activity Inserted!', [
+              {
+                text: 'OK'
+              },
+            ]);
+          },
           onError: (err: any) => Alert.alert('Error', err.message || 'Failed to create log'),
         }
       );
@@ -141,9 +156,17 @@ const EditLogScreen: React.FC = () => {
         style: 'destructive',
         onPress: () => {
           if (activityId) {
+            setIsDeleting(true); // 🔹 Start loading
             deleteLog(activityId, {
-              onSuccess: () => router.back(),
-              onError: (err: any) => Alert.alert('Error', err.message || 'Failed to delete log'),
+              onSuccess: () => {
+                setIsDeleting(false); // 🔹 End loading
+                router.back();
+                Alert.alert('Success', 'Activity Deleted!');
+              },
+              onError: (err: any) => {
+                setIsDeleting(false); // 🔹 End loading even if error
+                Alert.alert('Error', err.message || 'Failed to delete log');
+              },
             });
           }
         },
@@ -151,12 +174,19 @@ const EditLogScreen: React.FC = () => {
     ]);
   };
 
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <KeyboardAvoidingWrapper>
+
+
         <Stack.Screen options={{ title: isUpdating ? 'Edit Log' : 'Add Log', headerTitleAlign: 'center' }} />
         <ScrollView contentContainerStyle={styles.scrollContent}>
-
+          {isDeleting && (
+            <View style={styles.loadingOverlay}>
+              <Text style={styles.loadingText}>Deleting...</Text>
+            </View>
+          )}
           <Text style={styles.label}>🖼 Photo</Text>
           <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
             {photoUri ? (
@@ -176,7 +206,11 @@ const EditLogScreen: React.FC = () => {
               value={logDate}
               mode="time"
               display="default"
-              onChange={(_e, time) => time && setLogDate(new Date(logDate.setHours(time.getHours(), time.getMinutes())))}
+              onChange={(_e, time) => {
+                time && setLogDate(new Date(logDate.setHours(time.getHours(), time.getMinutes())));
+                _e.type === 'set' && setShowTimePicker(false);
+                _e.type === 'dismissed' && setShowTimePicker(false);
+              }}
             />
           )}
 
@@ -279,6 +313,26 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginTop: 16,
   },
   deleteButtonText: { color: '#e53935', fontWeight: 'bold', fontSize: 16 },
+  loadingOverlay: {
+  position: 'absolute',
+  top: 0,
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 999,
+},
+loadingText: {
+  backgroundColor: '#fff',
+  padding: 20,
+  borderRadius: 12,
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#7c5fc9',
+},
+
 });
 
 export default EditLogScreen;
