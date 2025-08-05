@@ -3,6 +3,44 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '@/providers/AuthProvider';
 import { useAssignedPets } from "@/api/pets_assigned";
 
+const getSpeciesEmoji = (species: string): string => {
+  const emojiMap: Record<string, string> = {
+    dog: '🐶',
+    cat: '🐱',
+    rabbit: '🐰',
+    bird: '🐦',
+    hamster: '🐹',
+    guinea: '🐹',
+    ferret: '🦡',
+    turtle: '🐢',
+    fish: '🐠',
+    horse: '🐴',
+    pig: '🐷',
+    goat: '🐐',
+    sheep: '🐑',
+    cow: '🐄',
+    duck: '🦆',
+    chicken: '🐔',
+    lizard: '🦎',
+    frog: '🐸',
+    snake: '🐍',
+    hedgehog: '🦔',
+    alpaca: '🦙',
+    parrot: '🦜',
+    other: '🦄',
+  };
+
+  // Find a matching emoji using partial match
+  for (const key in emojiMap) {
+    if (species.toLowerCase().includes(key)) {
+      return emojiMap[key];
+    }
+  }
+
+  return '🐾'; // default
+};
+
+
 export const usePetsList = () => {
   const { user, isAdmin } = useAuth();
   const assignedPetQuery = !isAdmin ? useAssignedPets(user.user_id).data : undefined;
@@ -50,11 +88,13 @@ export const usePetData = (pet_id: string) => {
   
 }
 
-export const useInsertPet = ()=> {
+export const useInsertPet = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
     async mutationFn(newPet: any) {
-      console.log('Inserting new pet:', newPet);
+      const emoji = getSpeciesEmoji(newPet.species);
+
       const { data: newPetData, error } = await supabase
         .from('pets')
         .insert({
@@ -65,32 +105,31 @@ export const useInsertPet = ()=> {
           status: newPet.status,
           profile_photo: newPet.profile_photo,
           dob: newPet.dob,
-          location: newPet.location
+          location: newPet.location,
+          emoji: emoji
         })
         .single();
-      if (error) {
-        console.log('Error inserting pet:', error.message);
-        throw new Error(error.message);
-      }
-      console.log('FROM API New pet inserted successfully:', newPetData);
+
+      if (error) throw new Error(error.message);
       return newPetData;
     },
     async onSuccess() {
       await queryClient.invalidateQueries({ queryKey: ['pets'] });
     },
     async onError(error: any) {
-      console.log(error.message || 'Failed to insert pet.');
       throw new Error(error.message || 'Failed to insert pet.');
     }
-
   });
-}
+};
 
-export const useUpdatePet = ()=> {
+
+export const useUpdatePet = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
     async mutationFn(updatePet: any) {
-      console.log('Updating pet:', updatePet.pet_id);
+      const emoji = getSpeciesEmoji(updatePet.species);
+
       const { data: updatedPetData, error } = await supabase
         .from('pets')
         .update({
@@ -100,15 +139,14 @@ export const useUpdatePet = ()=> {
           gender: updatePet.gender,
           status: updatePet.status,
           dob: updatePet.dob,
-          location: updatePet.location
+          location: updatePet.location,
+          emoji: emoji
         })
         .eq('pet_id', updatePet.pet_id)
         .select()
         .single();
-      console.log('Updated pet data:', updatedPetData);
-      if (error) {
-        throw new Error(error.message);
-      }
+
+      if (error) throw new Error(error.message);
       return updatedPetData;
     },
     async onSuccess(_, updatePet) {
@@ -118,6 +156,5 @@ export const useUpdatePet = ()=> {
     async onError(error: any) {
       throw new Error(error.message || 'Failed to update pet.');
     }
-
   });
-}
+};

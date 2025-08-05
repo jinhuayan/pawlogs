@@ -131,7 +131,7 @@ const PetsScreen: React.FC = () => {
           keyExtractor={item => item.pet_id}
           contentContainerStyle={{ paddingBottom: 24 }}
           renderItem={({ item }) => (
-            <PetsViewList Pet={item} Mode={'user'} PressablePath={`/pet-calendar?petId=${item.pet_id}`} />
+            <PetsViewList Pet={item} Mode={'user'} PressablePath={`/pet-calendar?petId=${item.pet_id}&name=${encodeURIComponent(item.name)}&emoji=${encodeURIComponent(item.emoji || '🐾')}&dob=${encodeURIComponent(item.dob)}`}/>
           )}
         />
       )}

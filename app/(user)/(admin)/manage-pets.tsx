@@ -51,7 +51,16 @@ const ManagePets: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+
         <Text style={styles.header}>All Pets</Text>
+
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => router.push('/edit-pet')}
+        >
+          <Text style={styles.createButtonText}>Create Pet</Text>
+        </TouchableOpacity>
+
         {/* Filter Button */}
         <TouchableOpacity style={styles.filterButton} onPress={() => setFilterModalVisible(true)}>
           <Ionicons name="filter" size={18} color="#fff" />
@@ -121,14 +130,7 @@ const ManagePets: React.FC = () => {
           </View>
         </View>
       </Modal>
-      <View style={{ alignItems: 'center', marginBottom: 16 }}>
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => router.push('/edit-pet')}
-        >
-          <Text style={styles.createButtonText}>Create Pet</Text>
-        </TouchableOpacity>
-      </View>
+
       {filteredPets && filteredPets.length > 0 && (
         <FlatList
           data={filteredPets}
@@ -151,9 +153,9 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 16,
     color: '#7c5fc9',
     textAlign: 'center',
+    marginBottom: 2,
   },
   filterButton: {
     flexDirection: 'row',
@@ -290,11 +292,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   createButton: {
-    backgroundColor: '#7c5fc9',
-    paddingVertical: 10,
-    paddingHorizontal: 100,
-    borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-end',
+    backgroundColor: '#7c5fc9',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    marginBottom: 8,
+    shadowColor: '#7c5fc9',
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
   },
   createButtonText: {
     color: '#fff',

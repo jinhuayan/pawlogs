@@ -207,12 +207,12 @@ export default function EditPetScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.header}>{isUpdating ? 'Edit Pet Profile' : 'Create Pet Profile'}</Text>
 
-        <TouchableOpacity style={styles.photoContainer} onPress={pickImage}>
+        <TouchableOpacity onPress={pickImage} style={styles.imageBox}>
           {photoUri ? (
             <Image source={{ uri: photoUri }} style={styles.photo} />
           ) : (
             <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderText}>Tap to upload photo</Text>
+              <Text style={styles.photoPlaceholderText}>Tap to upload image</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -333,31 +333,28 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: 'center',
   },
-  photoContainer: {
-    alignSelf: 'center',
-    marginBottom: 24,
-    borderRadius: 16,
-    overflow: 'hidden',
-    width: 180,
+  imageBox: {
     height: 140,
-    backgroundColor: '#e6d6fa',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    backgroundColor: '#f0eefc',
+    marginBottom: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#9e7ae7',
   },
   photo: {
-    width: '100%',
-    height: '100%',
+    width: '100%', 
+    height: 140, 
+    borderRadius: 10
   },
   photoPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   photoPlaceholderText: {
-    color: '#7c5fc9',
-    fontSize: 16,
-    fontWeight: '600',
+    textAlign: 'center', 
+    color: '#aaa'
   },
   input: {
     borderColor: '#9e7ae7',

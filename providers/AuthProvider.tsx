@@ -28,12 +28,18 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const fetchUser = async (session: Session | null) => {
     if (session) {
       console.log('Fetching user data for:', session.user.id);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('user_id', session.user.id)
         .single();
-
+      if (error) {
+        console.error('Error fetching user data:', error);
+        Alert.alert('Error', 'Failed to fetch user data. Please try again later.');
+        setSession(null);
+        setUser(null);
+        return;
+      }
       if (data.approved === null) {
         Alert.alert(
           'Account Pending Approval',
