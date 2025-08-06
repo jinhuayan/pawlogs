@@ -127,7 +127,7 @@ export default function EditPetScreen() {
   };
 
   const handleCreatePet = async () => {
-    if (!name || !dob || !species || !location || !breed || !gender || !status) {
+    if (!name || !dob || !species || !location || !breed || !gender) {
       Alert.alert('Missing fields', 'Please fill in all fields.');
       return;
     }
