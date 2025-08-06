@@ -128,19 +128,17 @@ export default function UserLayout() {
 
         <Stack.Screen name="(admin)" options={{ headerShown: false }} />
         <Stack.Screen name="pets-view"
-          options={{ title: 'Pet View', headerBackVisible: false }}
+          options={{ title: 'Foster View', headerBackVisible: false, headerTitleAlign: 'center' }}
         />
-        <Stack.Screen name="pet-calendar"
-          options={{ title: 'Pet Calendar' }}
-        />
+        <Stack.Screen name="pet-calendar" />
         <Stack.Screen name="pet-activity"
-          options={{ title: 'Pet Activity' }}
+          options={{ title: 'Pet Activity', headerTitleAlign: 'center' }}
         />
         <Stack.Screen name="edit-log"
-          options={{ title: 'Edit Log' }}
+          options={{ title: 'Edit Log', headerTitleAlign: 'center' }}
         />
         <Stack.Screen name="create-pet"
-          options={{ title: 'Edit Log' }}
+          options={{ title: 'Edit Log', headerTitleAlign: 'center' }}
         />
       </Stack>
 
