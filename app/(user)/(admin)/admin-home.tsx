@@ -23,6 +23,14 @@ export default function AdminHomeScreen() {
         <Text style={styles.buttonText}>Manage Users</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push('/notification-setting')}
+      >
+        <Text style={styles.buttonText}>Notification Settings</Text>
+      </TouchableOpacity>
+
+
 
       <TouchableOpacity
         style={styles.button}
@@ -43,7 +51,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#fdf6ff',
   },
   title: {
     fontSize: 22,

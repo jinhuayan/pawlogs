@@ -3,14 +3,14 @@ import { Redirect } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 
 const index = () => {
-  const { session, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     console.log('Index: Loading index state...');
     return <ActivityIndicator />;
   }
   else {
-    if (!session) {
+    if (!user) {
       
       console.log('Index: User is not authenticated, redirecting to login');
       return <Redirect href={'/(auth)/login'} />; // Redirect to login if not authenticated

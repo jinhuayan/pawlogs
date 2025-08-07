@@ -14,31 +14,44 @@ import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';  
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';  
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const LoginScreen: React.FC = () => {  
   const [email, setEmail] = useState('');  // Changed from username to email  
   const [password, setPassword] = useState('');  
   const [loading, setLoading] = useState(false);  
 
   async function handleLogin() {  
-    if (!email.trim() || !password.trim()) {  
+    // Trim leading/trailing spaces
+    const emailValue = email.trim();  
+    const passwordValue = password.trim();
+
+    // Validate presence
+    if (!emailValue || !passwordValue) {  
       Alert.alert('Missing Fields', 'Please enter both email and password.');  
       return;  
     }  
 
+    // Validate email format
+    if (!EMAIL_REGEX.test(emailValue)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+
     setLoading(true);  
 
     const { error } = await supabase.auth.signInWithPassword({  
-      email: email,  // Using email now  
-      password: password,  
-    });  
+      email: emailValue,  
+      password: passwordValue,  
+    }); 
+
+    setLoading(false); 
 
     if (error) {  
       Alert.alert('Login Failed', error.message);  
     } else {  
       router.push('/');  
     }  
-
-    setLoading(false);  
   }  
 
   return (  
@@ -55,7 +68,7 @@ const LoginScreen: React.FC = () => {
           style={styles.input}  
           placeholder="Email"  //Changed from Username to Email 
           value={email}  // Using email state now 
-          onChangeText={setEmail}  
+          onChangeText={text => setEmail(text)}  
           autoCapitalize="none"  
           keyboardType="email-address"  // Optimized for email input 
         />  
@@ -63,7 +76,7 @@ const LoginScreen: React.FC = () => {
           style={styles.input}  
           placeholder="Password"  
           value={password}  
-          onChangeText={setPassword}  
+          onChangeText={text => setPassword(text)}  
           secureTextEntry  
         />  
 

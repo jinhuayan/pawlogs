@@ -1,14 +1,52 @@
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '@/providers/AuthProvider';
-import { useAssignedPet } from "@/api/pets_assigned";
+import { useAssignedPets } from "@/api/pets_assigned";
+
+const getSpeciesEmoji = (species: string): string => {
+  const emojiMap: Record<string, string> = {
+    dog: '🐶',
+    cat: '🐱',
+    rabbit: '🐰',
+    bird: '🐦',
+    hamster: '🐹',
+    guinea: '🐹',
+    ferret: '🦡',
+    turtle: '🐢',
+    fish: '🐠',
+    horse: '🐴',
+    pig: '🐷',
+    goat: '🐐',
+    sheep: '🐑',
+    cow: '🐄',
+    duck: '🦆',
+    chicken: '🐔',
+    lizard: '🦎',
+    frog: '🐸',
+    snake: '🐍',
+    hedgehog: '🦔',
+    alpaca: '🦙',
+    parrot: '🦜',
+    other: '🦄',
+  };
+
+  // Find a matching emoji using partial match
+  for (const key in emojiMap) {
+    if (species.toLowerCase().includes(key)) {
+      return emojiMap[key];
+    }
+  }
+
+  return '🐾'; // default
+};
+
 
 export const usePetsList = () => {
-  const { isAdmin } = useAuth();
-  const assignedPetQuery = !isAdmin ? useAssignedPet().data : undefined;
+  const { user, isAdmin } = useAuth();
+  const assignedPetQuery = !isAdmin ? useAssignedPets(user.user_id).data : undefined;
 
   return useQuery({
-    queryKey: ['pets', isAdmin, assignedPetQuery],
+    queryKey: ['pets'],
     enabled: isAdmin || (!!assignedPetQuery && assignedPetQuery.length > 0),
     queryFn: async () => {
       if (isAdmin) {
@@ -49,3 +87,75 @@ export const usePetData = (pet_id: string) => {
   });
   
 }
+
+export const useInsertPet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    async mutationFn(newPet: any) {
+      const emoji = getSpeciesEmoji(newPet.species);
+
+      const { data: newPetData, error } = await supabase
+        .from('pets')
+        .insert({
+          name: newPet.name,
+          species: newPet.species,
+          breed: newPet.breed,
+          gender: newPet.gender,
+          status: newPet.status,
+          profile_photo: newPet.profile_photo,
+          dob: newPet.dob,
+          location: newPet.location,
+          emoji: emoji
+        })
+        .single();
+
+      if (error) throw new Error(error.message);
+      return newPetData;
+    },
+    async onSuccess() {
+      await queryClient.invalidateQueries({ queryKey: ['pets'] });
+    },
+    async onError(error: any) {
+      throw new Error(error.message || 'Failed to insert pet.');
+    }
+  });
+};
+
+
+export const useUpdatePet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    async mutationFn(updatePet: any) {
+      const emoji = getSpeciesEmoji(updatePet.species);
+
+      const { data: updatedPetData, error } = await supabase
+        .from('pets')
+        .update({
+          name: updatePet.name,
+          species: updatePet.species,
+          breed: updatePet.breed,
+          gender: updatePet.gender,
+          status: updatePet.status,
+          dob: updatePet.dob,
+          location: updatePet.location,
+          emoji: emoji,
+          profile_photo: updatePet.profile_photo
+        })
+        .eq('pet_id', updatePet.pet_id)
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+      return updatedPetData;
+    },
+    async onSuccess(_, updatePet) {
+      await queryClient.invalidateQueries({ queryKey: ['pets'] });
+      await queryClient.invalidateQueries({ queryKey: ['petData', updatePet.pet_id] });
+    },
+    async onError(error: any) {
+      throw new Error(error.message || 'Failed to update pet.');
+    }
+  });
+};

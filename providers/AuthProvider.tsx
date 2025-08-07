@@ -28,14 +28,53 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const fetchUser = async (session: Session | null) => {
     if (session) {
       console.log('Fetching user data for:', session.user.id);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('user_id', session.user.id)
         .single();
+      if (error) {
+        console.error('Error fetching user data:', error);
+        Alert.alert('Error', 'Failed to fetch user data. Please try again later.');
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      if (data.approved === null) {
+        Alert.alert(
+          'Account Pending Approval',
+          'Your account is pending approval. Please wait for an admin to approve your account.'
+        );
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      else if (data.approved === false) {
+        Alert.alert(
+          'Account Not Approved',
+          'Your account has not been approved. Please contact support.'
+        );
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      else if (data.status === false) {
+        Alert.alert(
+          'Account Inactive',
+          'Your account has been inactivated. Please contact support for assistance.'
+        );
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      else {
+      setSession(session);
+      console.log('User data fetched:', data);
       setUser(data || null);
+      }
 
     } else {
+      console.log('No session found, clearing user data');
       setUser(null);
     }
   };
@@ -57,10 +96,11 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       async (_event: AuthChangeEvent, session) => {
         console.log('Auth state changed:', _event);
         setLoading(true);
-        setSession(session);
         await fetchUser(session);
+        console.log('Loading state set to false after fetching user');
         setLoading(false);
         if (!session) {
+          console.log('No Session found');
         queryClient.clear(); // Clear cache on logout
       }
       }
