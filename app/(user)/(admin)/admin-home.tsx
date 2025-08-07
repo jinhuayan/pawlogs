@@ -39,8 +39,6 @@ export default function AdminHomeScreen() {
         <Text style={styles.buttonText}>Export Logs</Text>
       </TouchableOpacity>
 
-      
-
     </View>
   );
 }
