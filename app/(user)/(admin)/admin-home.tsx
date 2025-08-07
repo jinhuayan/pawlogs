@@ -30,6 +30,15 @@ export default function AdminHomeScreen() {
         <Text style={styles.buttonText}>Notification Settings</Text>
       </TouchableOpacity>
 
+
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push('/export')}
+      >
+        <Text style={styles.buttonText}>Export Logs</Text>
+      </TouchableOpacity>
+
     </View>
   );
 }
