@@ -65,6 +65,10 @@ export default function UserLayout() {
           name="edit-user"
           options={{ title: 'Edit User', headerTitleAlign: 'center' }}
         />
+        <Stack.Screen
+          name="notification-setting"
+          options={{ title: 'Notification Settings', headerTitleAlign: 'center' }}
+        />
       </Stack>
       <MyProfileModal visible={showProfile} onClose={() => setShowProfile(false)} />
     </>

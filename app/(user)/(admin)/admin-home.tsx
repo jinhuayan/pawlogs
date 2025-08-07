@@ -22,6 +22,14 @@ export default function AdminHomeScreen() {
       >
         <Text style={styles.buttonText}>Manage Users</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push('/notification-setting')}
+      >
+        <Text style={styles.buttonText}>Notification Settings</Text>
+      </TouchableOpacity>
+
     </View>
   );
 }
