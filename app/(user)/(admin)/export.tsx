@@ -2,7 +2,7 @@
 
 import 'react-native-url-polyfill/auto';
 import React, { useState } from 'react';
-import { View, Button, Alert, StyleSheet, Text } from 'react-native';
+import { View, Button, Alert, StyleSheet, Text, Linking } from 'react-native';
 
 // import { createClient } from '@supabase/supabase-js';
 // import { supabase } from '@/lib/supabase';
@@ -21,7 +21,24 @@ import { supabase } from '@/lib/supabase';
 // const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 
+const onExportSuccess = (spreadsheetId: string) => {
+  
+  const sheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
+  Alert.alert(
+    'Done',
+    'All Logs Exported! Click the link to view the exported logs.',
+    [
+      {
+        text: 'Open Google Sheets',
+        onPress: () => Linking.openURL(sheetUrl),
+      },
+      {text: "OK", style: 'cancel'},
+    ], 
+    { cancelable: true}
+  );
 
+
+};
 
 
 async function exportLogs() {
@@ -39,6 +56,13 @@ async function exportLogs() {
       Alert.alert('No pets found');
       return;
     }
+    {
+
+
+
+    }
+
+    let sheetId: string | undefined;
     for (const pet of pets) {
       console.log(`Exporting logs for pet ${pet.pet_id}`);
       const { data, error } = await supabase.functions.invoke('exportLogs', {
@@ -49,12 +73,18 @@ async function exportLogs() {
         console.error(`Failed to export logs for ${pet.pet_id}:`, error || data);
       } else {
         console.log(`Logs exported for ${pet.pet_id}`);
+        sheetId = data.spreadsheetId as string;
       }
 
     }
+    if (sheetId) {
+      onExportSuccess(sheetId);
+    }
+    else {
+      Alert.alert('Error', 'Export completed with no valid sheet link.');
+    }
 
-
-      Alert.alert('Done', 'All logs exported!');
+      // Alert.alert('Done', 'All logs exported!');
         } catch (error) {
           console.error('Export failed', error);
           Alert.alert('Error');
@@ -68,7 +98,7 @@ export default function ExportLogsScreen() {
     
 
     <View style={styles.container}>
-      <Text style={styles.header}>Export Logs</Text>
+      <Text style={styles.header}>Export Logs to Google Sheets</Text>
       <View style={styles.center}>
         <Button title= 'Export Logs' onPress={exportLogs}  />
       {/* <Button title="Export Logs" onPress={() => exportLogs()} /> */}
