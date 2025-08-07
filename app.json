@@ -1,34 +1,43 @@
 {
   "expo": {
-    "name": "pawlogs",
+    "name": "PawLogs",
     "slug": "pawlogs",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
     "scheme": "pawlogs",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
+    "icon": "./assets/images/icon.png",
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.naitikpatel2410.pawlog"
     },
+
     "android": {
+      "package": "com.naitikpatel2410.pawlog",
+      "googleServicesFile": "./android/app/google-services.json",
+      "edgeToEdgeEnabled": true,
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
+      }
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon.png"
     },
+
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -36,6 +45,7 @@
       ],
       "expo-secure-store"
     ],
+
     "experiments": {
       "typedRoutes": true
     }
