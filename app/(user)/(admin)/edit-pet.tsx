@@ -326,7 +326,9 @@ export default function EditPetScreen() {
               >
                 <Picker.Item label="Select User" value="" />
                 {usersList.map((user: any) => (
-                  <Picker.Item key={user.user_id} label={user.email} value={user.user_id} />
+                  <Picker.Item key={user.user_id} label={user.role === 'admin'? 
+                    "Admin" + " | " + user.fname + " " + user.lname + " | " + user.email
+                    : "Foster"  + " | " + user.fname + " " + user.lname + " | " + user.email} value={user.user_id} />
                 ))}
               </Picker>
             </View>

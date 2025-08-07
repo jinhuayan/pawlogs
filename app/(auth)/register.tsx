@@ -13,40 +13,55 @@ import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
 import KeyboardAvoidingWrapper from '@/components/KeyboardAvoidingWrapper';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const RegisterScreen: React.FC = () => {
   const [fname, setFname] = useState('');
   const [lname, setLname] = useState('');
-  const [email, setEmail] = useState(''); // Changed from username to email
+  const [email, setEmail] = useState('');  // Changed from username to email
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
-    if (!fname.trim() || !lname.trim() || !email.trim() || !password.trim()) {
+    // 1) Trim all inputs
+    const firstName = fname.trim();
+    const lastName = lname.trim();
+    const emailValue = email.trim();
+    const passwordValue = password.trim();
+
+    // 2) Ensure all fields are present
+    if (!firstName || !lastName || !emailValue || !passwordValue) {
       Alert.alert('Missing Fields', 'Please fill out all fields.');
+      return;
+    }
+
+    // 3) Validate email format
+    if (!EMAIL_REGEX.test(emailValue)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
 
     setLoading(true);
     const { error: signUpError } = await supabase.auth.signUp({
-      email: email,
-      password: password,
+      email: emailValue,
+      password: passwordValue,
       options: {
         data: {
-          fname,
-          lname,
-          email: email,
+          fname: firstName,
+          lname: lastName,
+          email: emailValue,
         },
         emailRedirectTo: undefined,
       },
     });
+    setLoading(false);
 
     if (signUpError) {
-      Alert.alert(signUpError.message);
-      setLoading(false);
+      Alert.alert('Registration Failed', signUpError.message);
       return;
     }
+
     Alert.alert('Registered!');
-    setLoading(false);
     router.push('/login');
   }
 
@@ -58,7 +73,9 @@ const RegisterScreen: React.FC = () => {
           style={styles.logo}
           resizeMode="contain"
         />
-        <ThemedText type="title" style={styles.title}>Register</ThemedText>
+        <ThemedText type="title" style={styles.title}>
+          Register
+        </ThemedText>
 
         <TextInput
           style={styles.input}
