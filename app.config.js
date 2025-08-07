@@ -6,13 +6,13 @@ export default {
     slug: "pawlog",
     version: "1.0.0",
     scheme: "pawlog",
-    icon: "./assets/images/icon.png", // 1024x1024, no transparency
+    icon: "./assets/images/icon.png",
 
     android: {
       package: "com.naitikpatel2410.pawlog",
       useNextNotificationsApi: true,
       edgeToEdgeEnabled: true,
-      //googleServicesFile: "./android/app/google-services.json",
+      googleServicesFile: "./android/app/google-services.json",
 
       adaptiveIcon: {
         foregroundImage: "./assets/images/icon.png",
