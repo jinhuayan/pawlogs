@@ -49,7 +49,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         setUser(null);
         return;
       }
-      if (data.approved === 'FALSE') {
+      else if (data.approved === false) {
         Alert.alert(
           'Account Not Approved',
           'Your account has not been approved. Please contact support.'
@@ -58,9 +58,20 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         setUser(null);
         return;
       }
+      else if (data.status === false) {
+        Alert.alert(
+          'Account Inactive',
+          'Your account has been inactivated. Please contact support for assistance.'
+        );
+        setSession(null);
+        setUser(null);
+        return;
+      }
+      else {
       setSession(session);
       console.log('User data fetched:', data);
       setUser(data || null);
+      }
 
     } else {
       console.log('No session found, clearing user data');

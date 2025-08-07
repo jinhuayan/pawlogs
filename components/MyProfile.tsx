@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, View, Text, Button, StyleSheet } from 'react-native';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
+import * as Notifications from 'expo-notifications';
 
 interface Props {
   visible: boolean;
@@ -15,10 +16,12 @@ const MyProfileModal: React.FC<Props> = ({ visible, onClose }) => {
   const displayName = fullName.trim() || 'n/a';
 
   const handleLogout = async () => {
+    await Notifications.cancelAllScheduledNotificationsAsync();
     const { error } = await supabase.auth.signOut();
     if (error) {
       alert('Logout Error: ' + error.message);
     } else {
+      
       onClose(); // Optional: close modal after logout
     }
   };
