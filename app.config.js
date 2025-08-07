@@ -12,7 +12,7 @@ export default {
       package: "com.naitikpatel2410.pawlog",
       useNextNotificationsApi: true,
       edgeToEdgeEnabled: true,
-      googleServicesFile: "./android/app/google-services.json",
+      //googleServicesFile: "./android/app/google-services.json",
 
       adaptiveIcon: {
         foregroundImage: "./assets/images/icon.png",
