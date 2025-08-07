@@ -12,12 +12,10 @@ export default {
       package: "com.naitikpatel2410.pawlog",
       useNextNotificationsApi: true,
       edgeToEdgeEnabled: true,
-
-      // Temporarily remove this to avoid prebuild error
-      // googleServicesFile: "./android/app/google-services.json",
+      googleServicesFile: "./android/app/google-services.json",
 
       adaptiveIcon: {
-        foregroundImage: "./assets/images/icon.png", // should include transparent padding
+        foregroundImage: "./assets/images/icon.png",
         backgroundColor: "#ffffff"
       }
     },
@@ -46,7 +44,7 @@ export default {
       [
         "expo-splash-screen",
         {
-          image: "./assets/images/icon.png", // used for splash screen
+          image: "./assets/images/icon.png",
           imageWidth: 200,
           resizeMode: "contain",
           backgroundColor: "#ffffff"
